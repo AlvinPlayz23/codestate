@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recode - Tools for the Terminal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Default: Recode Dark */
+            --background: oklch(0.18 0.004 308);
+            --foreground: oklch(0.85 0.01 308);
+            --card: oklch(0.22 0.01 308);
+            --primary: oklch(0.72 0.13 50);
+            --secondary: oklch(0.65 0.1 200);
+            --muted: oklch(0.28 0.01 308);
+            --muted-foreground: oklch(0.6 0.01 308);
+            --border: oklch(0.25 0.01 308);
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+            --rc-text: #f4f4f5;
+            --rc-text-muted: #a1a1aa;
+            --rc-text-faint: #52525b;
+            --rc-hover: rgba(255,255,255,0.06);
+            --rc-hover-strong: rgba(255,255,255,0.1);
+            --rc-border-soft: rgba(255,255,255,0.08);
+        }
+
+        /* Truly Creative Themes */
+        [data-theme="orchid"] {
+            --primary: oklch(0.7 0.2 310); /* Vivid Orchid */
+            --secondary: oklch(0.8 0.15 190); /* Soft Teal */
+            --background: oklch(0.12 0.03 280); /* Deep Night Purple */
+            --card: oklch(0.16 0.04 280);
+            --border: oklch(0.22 0.06 280);
+        }
+        [data-theme="solar"] {
+            --primary: oklch(0.7 0.25 45); /* Burning Orange */
+            --secondary: oklch(0.85 0.2 85); /* Sun Yellow */
+            --background: oklch(0.12 0.02 30); /* Charcoal Red */
+            --card: oklch(0.16 0.04 30);
+            --border: oklch(0.2 0.06 30);
+        }
+        [data-theme="glacier"] {
+            --primary: oklch(0.8 0.12 220); /* Ice Blue */
+            --secondary: oklch(0.9 0.05 180); /* Crystalline Cyan */
+            --background: oklch(0.14 0.03 240); /* Cold Deep Navy */
+            --card: oklch(0.18 0.04 240);
+            --border: oklch(0.24 0.05 240);
+        }
+        [data-theme="forest"] {
+            --primary: oklch(0.85 0.2 140); /* Electric Lime */
+            --secondary: oklch(0.6 0.1 160); /* Forest Teal */
+            --background: oklch(0.13 0.02 150); /* Dark Moss */
+            --card: oklch(0.17 0.03 150);
+            --border: oklch(0.22 0.05 150);
+        }
+        [data-theme="synth"] {
+            --primary: oklch(0.7 0.3 340); /* Neon Pink */
+            --secondary: oklch(0.65 0.25 250); /* Electric Blue */
+            --background: oklch(0.1 0.05 270); /* Deep Midnight Blue */
+            --card: oklch(0.14 0.08 270);
+            --border: oklch(0.2 0.12 270);
+        }
+        [data-theme="obsidian"] {
+            --primary: oklch(0.98 0 0); /* Pure White */
+            --secondary: oklch(0.5 0.2 25); /* Blood Red */
+            --background: oklch(0.08 0 0); /* Purest Black */
+            --card: oklch(0.12 0 0);
+            --border: oklch(0.18 0 0);
+        }
+        [data-theme="coral"] {
+            --primary: oklch(0.7 0.22 15); /* Vibrant Coral */
+            --secondary: oklch(0.75 0.18 350); /* Rose Pink */
+            --background: oklch(0.14 0.02 10); /* Deep Warm */
+            --card: oklch(0.18 0.03 10);
+            --border: oklch(0.24 0.04 10);
+        }
+        [data-theme="cyber"] {
+            --primary: oklch(0.8 0.25 180); /* Neon Cyan */
+            --secondary: oklch(0.75 0.2 140); /* Electric Green */
+            --background: oklch(0.1 0.04 200); /* Dark Teal */
+            --card: oklch(0.14 0.05 200);
+            --border: oklch(0.2 0.08 200);
+        }
+        [data-theme="lavender"] {
+            --primary: oklch(0.65 0.2 290); /* Deep Lavender */
+            --secondary: oklch(0.8 0.12 320); /* Soft Lilac */
+            --background: oklch(0.13 0.03 270); /* Midnight Purple */
+            --card: oklch(0.17 0.04 270);
+            --border: oklch(0.23 0.06 270);
+        }
+        [data-theme="ember"] {
+            --primary: oklch(0.65 0.25 25); /* Deep Ember */
+            --secondary: oklch(0.7 0.2 45); /* Amber Glow */
+            --background: oklch(0.11 0.03 15); /* Dark Crimson */
+            --card: oklch(0.15 0.04 15);
+            --border: oklch(0.21 0.06 15);
+        }
+        [data-theme="mint"] {
+            --primary: oklch(0.75 0.18 160); /* Fresh Mint */
+            --secondary: oklch(0.85 0.12 190); /* Aqua */
+            --background: oklch(0.12 0.02 170); /* Deep Sea */
+            --card: oklch(0.16 0.03 170);
+            --border: oklch(0.22 0.05 170);
+        }
+        [data-theme="noir"] {
+            --primary: oklch(0.9 0 0); /* Silver */
+            --secondary: oklch(0.6 0.08 250); /* Steel Blue */
+            --background: oklch(0.1 0 0); /* Near Black */
+            --card: oklch(0.14 0 0);
+            --border: oklch(0.2 0 0);
+        }
+
+        /* Adaptive Light Mode Overrides */
+        [data-mode="light"] {
+            --foreground: oklch(0.25 0.02 308);
+            --muted-foreground: oklch(0.5 0.02 308);
+            --primary-foreground: oklch(0.98 0.01 308);
+            --rc-text: #27272a;
+            --rc-text-muted: #71717a;
+            --rc-text-faint: #a1a1aa;
+            --rc-hover: rgba(0,0,0,0.04);
+            --rc-hover-strong: rgba(0,0,0,0.08);
+            --rc-border-soft: rgba(0,0,0,0.08);
+        }
+        [data-mode="light"][data-theme="recode"] { --background: oklch(0.98 0.01 308); --card: oklch(0.95 0.01 308); --border: oklch(0.85 0.02 308); }
+        [data-mode="light"][data-theme="orchid"] { --background: oklch(0.96 0.02 310); --card: oklch(0.92 0.03 310); --border: oklch(0.88 0.04 310); }
+        [data-mode="light"][data-theme="solar"] { --background: oklch(0.97 0.02 45); --card: oklch(0.94 0.03 45); --border: oklch(0.9 0.04 45); }
+        [data-mode="light"][data-theme="glacier"] { --background: oklch(0.96 0.02 220); --card: oklch(0.92 0.03 220); --border: oklch(0.88 0.04 220); }
+        [data-mode="light"][data-theme="forest"] { --background: oklch(0.97 0.02 140); --card: oklch(0.93 0.03 140); --border: oklch(0.89 0.04 140); }
+        [data-mode="light"][data-theme="synth"] { --background: oklch(0.96 0.03 340); --card: oklch(0.91 0.05 340); --border: oklch(0.86 0.07 340); }
+        [data-mode="light"][data-theme="obsidian"] { --background: oklch(0.98 0 0); --card: oklch(0.94 0 0); --border: oklch(0.9 0 0); --foreground: oklch(0.1 0 0); }
+        [data-mode="light"][data-theme="coral"] { --background: oklch(0.97 0.02 15); --card: oklch(0.93 0.03 15); --border: oklch(0.88 0.04 15); }
+        [data-mode="light"][data-theme="cyber"] { --background: oklch(0.96 0.02 180); --card: oklch(0.92 0.03 180); --border: oklch(0.88 0.04 180); }
+        [data-mode="light"][data-theme="lavender"] { --background: oklch(0.96 0.02 290); --card: oklch(0.92 0.03 290); --border: oklch(0.88 0.04 290); }
+        [data-mode="light"][data-theme="ember"] { --background: oklch(0.97 0.02 25); --card: oklch(0.93 0.03 25); --border: oklch(0.88 0.04 25); }
+        [data-mode="light"][data-theme="mint"] { --background: oklch(0.96 0.02 160); --card: oklch(0.92 0.03 160); --border: oklch(0.88 0.04 160); }
+        [data-mode="light"][data-theme="noir"] { --background: oklch(0.97 0 0); --card: oklch(0.93 0 0); --border: oklch(0.88 0 0); }
+        
+        /* Dark mode prompt box */
+        .prompt-box { background: rgba(255,255,255,0.03); }
+        [data-mode="light"] .prompt-box { background: var(--card); opacity: 0.4; }
+
+        body {
+            background-color: var(--background);
+            color: var(--foreground);
+            font-family: "Geist Mono", ui-monospace, monospace;
+            -webkit-font-smoothing: antialiased;
+            margin: 0;
+            transition: background-color 0.6s cubic-bezier(0.4, 0, 0.2, 1), color 0.4s ease;
+        }
+
+        .font-serif { font-family: "Instrument Serif", serif; }
+        .font-mono { font-family: "JetBrains Mono", monospace; }
+
+        .rail-line {
+            width: 1px;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            background-color: var(--border);
+            opacity: 0.4;
+        }
+
+        [x-cloak] { display: none !important; }
+
+        /* Project row */
+        .project-row {
+            display: flex;
+            align-items: center;
+            padding: 6px 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 120ms ease;
+            position: relative;
+        }
+        .project-row:hover { background: var(--rc-hover); }
+
+        .project-chevron {
+            width: 12px;
+            height: 12px;
+            flex-shrink: 0;
+            color: var(--rc-text-faint);
+            transition: transform 180ms ease;
+        }
+
+        .project-row.collapsed .project-chevron {
+            transform: rotate(-90deg);
+        }
+
+        .project-name {
+            flex: 1;
+            min-width: 0;
+            font-size: 12.5px;
+            font-weight: 500;
+            color: var(--rc-text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .project-count {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            color: var(--rc-text-faint);
+            margin-left: 8px;
+            opacity: 1;
+            transition: opacity 120ms ease;
+        }
+        .project-row:hover .project-count { opacity: 0; }
+
+        .project-add {
+            position: absolute;
+            right: 6px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            border: none;
+            background: none;
+            color: var(--rc-text-muted);
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 120ms ease, background 120ms ease;
+        }
+        .project-row:hover .project-add { opacity: 1; }
+        .project-add:hover { background: var(--rc-hover-strong); color: var(--rc-text); }
+
+        /* Thread list */
+        .thread-list {
+            border-left: 1px solid var(--rc-border-soft);
+            margin-left: 6px;
+            padding-left: 4px;
+            margin-top: 2px;
+            overflow: hidden;
+            transition: max-height 220ms cubic-bezier(0.32, 0.72, 0, 1),
+                         opacity 160ms ease;
+            max-height: 500px;
+            opacity: 1;
+        }
+
+        .thread-list.collapsed {
+            max-height: 0;
+            opacity: 0;
+            margin-top: 0;
+            pointer-events: none;
+        }
+
+        /* Thread row */
+        .thread-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 120ms ease;
+            font-size: 11.5px;
+            color: var(--rc-text-muted);
+        }
+        .thread-row:hover { background: var(--rc-hover); color: var(--rc-text); }
+        .thread-row.active { background: var(--rc-hover); color: var(--rc-text); }
+        .thread-row .thread-title {
+            flex: 1;
+            min-width: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-family: var(--font-sans);
+            font-size: 11.5px;
+        }
+        .thread-row .thread-icons {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            opacity: 0;
+            transition: opacity 120ms ease;
+        }
+        .thread-row:hover .thread-icons { opacity: 1; }
+        .thread-row .thread-icons svg { color: var(--rc-text-faint); }
+
+        /* Command Palette */
+        .cmd-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+            z-index: 100;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding-top: 20vh;
+        }
+        .cmd-palette {
+            width: 520px;
+            max-width: 90vw;
+            background: var(--card);
+            border: 1px solid var(--rc-border-soft);
+            border-radius: 12px;
+            box-shadow: 0 24px 80px -12px rgba(0,0,0,0.6);
+            overflow: hidden;
+        }
+        .cmd-input-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--rc-border-soft);
+        }
+        .cmd-input-wrap svg { color: var(--rc-text-faint); flex-shrink: 0; }
+        .cmd-input {
+            flex: 1;
+            background: none;
+            border: none;
+            outline: none;
+            font-family: var(--font-sans);
+            font-size: 14px;
+            color: var(--rc-text);
+        }
+        .cmd-input::placeholder { color: var(--rc-text-faint); }
+        .cmd-results {
+            max-height: 320px;
+            overflow-y: auto;
+            padding: 6px;
+        }
+        .cmd-group-label {
+            font-family: var(--font-sans);
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--rc-text-muted);
+            padding: 8px 10px 4px;
+        }
+        .cmd-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 100ms;
+        }
+        .cmd-item:hover, .cmd-item.active { background: var(--rc-hover); }
+        .cmd-item svg { color: var(--rc-text-faint); flex-shrink: 0; }
+        .cmd-item-title {
+            flex: 1;
+            font-family: var(--font-sans);
+            font-size: 13px;
+            color: var(--rc-text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .cmd-item-project {
+            font-family: var(--font-sans);
+            font-size: 10px;
+            color: var(--rc-text-faint);
+        }
+        .cmd-footer {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 16px;
+            border-top: 1px solid var(--rc-border-soft);
+            font-family: var(--font-sans);
+            font-size: 11px;
+            color: var(--rc-text-faint);
+        }
+        .cmd-footer kbd {
+            background: var(--rc-hover);
+            padding: 2px 5px;
+            border-radius: 4px;
+            font-size: 10px;
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        background: 'var(--background)',
+                        foreground: 'var(--foreground)',
+                        primary: {
+                            DEFAULT: 'var(--primary)',
+                            foreground: 'oklch(0.18 0.004 308)',
+                        },
+                        secondary: 'var(--secondary)',
+                        muted: {
+                            DEFAULT: 'var(--muted)',
+                            foreground: 'var(--muted-foreground)',
+                        },
+                        card: {
+                            DEFAULT: 'var(--card)',
+                            foreground: 'var(--foreground)',
+                        },
+                        border: 'var(--border)',
+                    },
+                }
+            }
+        }
+    </script>
+</head>
+<body 
+    x-data="{ 
+        scrolled: false, 
+        userMenu: false,
+        theme: 'recode',
+        mode: 'dark',
+        sidebarOpen: true,
+        cmdPalette: false,
+        settingsOpen: false,
+        showAllThemes: false,
+        cmdQuery: '',
+        cmdItems: [
+            { title: 'Fix auth redirect bug', project: 'shot-scraper' },
+            { title: 'Add dark mode toggle', project: 'shot-scraper' },
+            { title: 'Refactor API routes', project: 'shot-scraper' },
+            { title: 'Build landing page', project: 'recode-scratch' },
+            { title: 'Responsive navbar', project: 'recode-scratch' },
+            { title: 'Database migrations', project: 'backend-api' },
+            { title: 'JWT auth flow', project: 'backend-api' },
+            { title: 'Rate limiting', project: 'backend-api' },
+            { title: 'Webhook handlers', project: 'backend-api' }
+        ],
+        get filteredCmdItems() {
+            const q = this.cmdQuery.toLowerCase();
+            return this.cmdItems.filter(i => i.title.toLowerCase().includes(q) || i.project.toLowerCase().includes(q));
+        },
+
+        toggleMode() { this.mode = this.mode === 'dark' ? 'light' : 'dark' }
+    }" 
+    :data-theme="theme"
+    :data-mode="mode"
+    @scroll.window="scrolled = window.scrollY > 50"
+>
+
+    <div class="min-h-screen flex flex-col bg-background text-foreground font-sans relative overflow-x-hidden transition-colors duration-500">
+        
+        <!-- SIDEBAR -->
+        <aside x-show="sidebarOpen" x-cloak x-transition:enter="transition ease-out duration-300" x-transition:enter-start="-translate-x-full opacity-0" x-transition:enter-end="translate-x-0 opacity-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="translate-x-0 opacity-100" x-transition:leave-end="-translate-x-full opacity-0" class="fixed top-0 left-0 h-full w-[260px] bg-card/60 backdrop-blur-2xl flex flex-col z-40">
+            <!-- Toggle -->
+            <div class="p-4 pb-2">
+                <button @click="sidebarOpen = false" class="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-[var(--rc-hover)] transition-all">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--rc-text-muted)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+                <!-- New Chat -->
+            <div class="px-2 pb-1">
+                <button class="w-full flex items-center gap-2 py-[5px] px-[10px] rounded-lg hover:bg-[var(--rc-hover)] transition-all">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--rc-text-muted)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="11" width="18" height="10" rx="2"></rect>
+                        <circle cx="12" cy="5" r="2"></circle>
+                        <path d="M12 7v4"></path>
+                        <line x1="8" y1="16" x2="8" y2="16.01"></line>
+                        <line x1="16" y1="16" x2="16" y2="16.01"></line>
+                    </svg>
+                    <span style="font-family: var(--font-sans); font-size: 13px; font-weight: 500; color: var(--rc-text);">New Chat</span>
+                </button>
+            </div>
+
+            <!-- Search -->
+            <div class="px-2 pb-2">
+                <button @click="cmdPalette = true" class="w-full flex items-center gap-2 py-[5px] px-[10px] rounded-lg hover:bg-[var(--rc-hover)] transition-all">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--rc-text-muted)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                    <span style="font-family: var(--font-sans); font-size: 13px; font-weight: 500; color: var(--rc-text);">Search</span>
+                    <span style="margin-left: auto; font-family: var(--font-mono); font-size: 10px; color: var(--rc-text-faint); background: var(--rc-hover); padding: 2px 5px; border-radius: 4px;">⌘K</span>
+                </button>
+            </div>
+
+            <!-- Sessions -->
+            <div class="flex-1 overflow-y-auto px-3 pb-4 flex flex-col">
+                <span class="px-2 py-2" style="font-family: var(--font-sans); font-size: 11px; font-weight: 500; color: var(--rc-text-muted);">Sessions</span>
+
+                <!-- Project: shot-scraper (expanded) -->
+                <div class="project-row">
+                    <svg class="project-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                    <span class="project-name">shot-scraper</span>
+                    <span class="project-count">3</span>
+                    <button class="project-add" title="New thread">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                    </button>
+                </div>
+                <div class="thread-list">
+                    <div class="thread-row active">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"/></svg>
+                        <span class="thread-title">Fix auth redirect bug</span>
+                        <div class="thread-icons">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--rc-text-faint)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></svg>
+                        </div>
+                    </div>
+                    <div class="thread-row">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"/></svg>
+                        <span class="thread-title">Add dark mode toggle</span>
+                        <div class="thread-icons">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--rc-text-faint)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
+                        </div>
+                    </div>
+                    <div class="thread-row">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"/></svg>
+                        <span class="thread-title">Refactor API routes</span>
+                        <div class="thread-icons">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--rc-text-faint)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Project: recode-scratch (collapsed) -->
+                <div class="project-row collapsed" style="margin-top: 2px;">
+                    <svg class="project-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                    <span class="project-name">recode-scratch</span>
+                    <span class="project-count">2</span>
+                    <button class="project-add" title="New thread">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                    </button>
+                </div>
+                <div class="thread-list collapsed">
+                    <div class="thread-row">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"/></svg>
+                        <span class="thread-title">Build landing page</span>
+                        <div class="thread-icons">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--rc-text-faint)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
+                        </div>
+                    </div>
+                    <div class="thread-row">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"/></svg>
+                        <span class="thread-title">Responsive navbar</span>
+                        <div class="thread-icons">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--rc-text-faint)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Project: backend-api (collapsed) -->
+                <div class="project-row collapsed" style="margin-top: 2px;">
+                    <svg class="project-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                    <span class="project-name">backend-api</span>
+                    <span class="project-count">4</span>
+                    <button class="project-add" title="New thread">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                    </button>
+                </div>
+                <div class="thread-list collapsed">
+                    <div class="thread-row">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"/></svg>
+                        <span class="thread-title">Database migrations</span>
+                        <div class="thread-icons">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--rc-text-faint)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
+                        </div>
+                    </div>
+                    <div class="thread-row">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"/></svg>
+                        <span class="thread-title">JWT auth flow</span>
+                        <div class="thread-icons">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--rc-text-faint)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
+                        </div>
+                    </div>
+                    <div class="thread-row">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"/></svg>
+                        <span class="thread-title">Rate limiting</span>
+                        <div class="thread-icons">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--rc-text-faint)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
+                        </div>
+                    </div>
+                    <div class="thread-row">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"/></svg>
+                        <span class="thread-title">Webhook handlers</span>
+                        <div class="thread-icons">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--rc-text-faint)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Status Indicators -->
+            <div class="px-4 pb-2 flex flex-col gap-1.5 ml-2">
+                <div class="flex items-center gap-2">
+                    <div class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.5)]"></div>
+                    <span style="font-family: var(--font-mono); font-size: 10px; color: var(--rc-text-faint);">ACTIVE</span>
+                </div>
+                <!--
+                <div class="flex items-center gap-2">
+                    <div class="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.5)]"></div>
+                    <span style="font-family: var(--font-mono); font-size: 10px; color: var(--rc-text-faint);">INACTIVE</span>
+                </div>
+                -->
+            </div>
+
+            <!-- Settings at bottom -->
+            <div class="p-2 mt-auto">
+                <button @click="settingsOpen = true" class="w-full flex items-center gap-2 py-[5px] px-[10px] rounded-lg hover:bg-[var(--rc-hover)] transition-all">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--rc-text-muted)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    <span style="font-family: var(--font-sans); font-size: 13px; font-weight: 500; color: var(--rc-text);">Settings</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- SETTINGS OVERLAY -->
+        <div x-show="settingsOpen" x-cloak
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             class="fixed inset-0 z-50 flex items-center justify-center" style="background: var(--background);" @click.self="settingsOpen = false" @keydown.escape.window="settingsOpen = false">
+            <div class="w-[420px] max-w-[90vw] max-h-[80vh] overflow-y-auto bg-card rounded-xl shadow-[0_24px_80px_-12px_rgba(0,0,0,0.6)]"
+                 x-transition:enter="transition ease-out duration-200 delay-75"
+                 x-transition:enter-start="opacity-0 scale-95 translate-y-2"
+                 x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                 x-transition:leave="transition ease-in duration-150"
+                 x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                 x-transition:leave-end="opacity-0 scale-95 translate-y-2"
+                 @click.stop>
+                
+                <!-- Header -->
+                <div class="flex items-center justify-between px-5 py-4">
+                    <span style="font-family: var(--font-sans); font-size: 14px; font-weight: 600; color: var(--rc-text);">Settings</span>
+                    <button @click="settingsOpen = false" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-[var(--rc-hover)] transition-all">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--rc-text-muted)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                    </button>
+                </div>
+
+                <div class="px-5 pb-5 flex flex-col gap-5">
+                    <!-- Account Info -->
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-primary/20 to-secondary/20 flex items-center justify-center text-[11px] font-bold text-primary">JD</div>
+                        <div class="flex flex-col">
+                            <span style="font-family: var(--font-sans); font-size: 13px; font-weight: 600; color: var(--rc-text);">John Doe</span>
+                            <span style="font-family: var(--font-mono); font-size: 10px; color: var(--rc-text-faint);">recode.session_01</span>
+                        </div>
+                    </div>
+
+                    <!-- Mode Toggle -->
+                    <div class="flex items-center justify-between">
+                        <span style="font-family: var(--font-sans); font-size: 12px; font-weight: 500; color: var(--rc-text-muted);">Atmosphere</span>
+                        <button 
+                            @click="toggleMode()"
+                            class="w-9 h-9 rounded-lg bg-background/50 flex items-center justify-center transition-all relative overflow-hidden"
+                        >
+                            <div class="absolute transition-all duration-700" :class="mode === 'light' ? 'rotate-0 scale-100 opacity-100' : 'rotate-90 scale-0 opacity-0'">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-primary"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>
+                            </div>
+                            <div class="absolute transition-all duration-700" :class="mode === 'dark' ? 'rotate-0 scale-100 opacity-100' : '-rotate-90 scale-0 opacity-0'">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-secondary"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
+                            </div>
+                        </button>
+                    </div>
+
+                    <!-- Themes -->
+                    <div class="flex flex-col gap-2">
+                        <span style="font-family: var(--font-sans); font-size: 12px; font-weight: 500; color: var(--rc-text-muted);">Visual Profile</span>
+                        <div class="grid grid-cols-4 gap-2">
+                            <button @click="theme = 'recode'" class="group relative w-full aspect-square rounded-lg bg-[oklch(0.18_0.004_308)] border border-border" title="Recode Classic">
+                                <div class="absolute inset-1.5 rounded bg-[oklch(0.72_0.13_50)]" :class="theme === 'recode' ? 'ring-2 ring-primary ring-offset-1 ring-offset-card' : ''"></div>
+                            </button>
+                            <button @click="theme = 'orchid'" class="group relative w-full aspect-square rounded-lg bg-[oklch(0.12_0.03_280)] border border-border" title="Midnight Orchid">
+                                <div class="absolute inset-1.5 rounded bg-[oklch(0.7_0.2_310)]" :class="theme === 'orchid' ? 'ring-2 ring-primary ring-offset-1 ring-offset-card' : ''"></div>
+                            </button>
+                            <button @click="theme = 'solar'" class="group relative w-full aspect-square rounded-lg bg-[oklch(0.12_0.02_30)] border border-border" title="Solar Flare">
+                                <div class="absolute inset-1.5 rounded bg-[oklch(0.7_0.25_45)]" :class="theme === 'solar' ? 'ring-2 ring-primary ring-offset-1 ring-offset-card' : ''"></div>
+                            </button>
+                            <button @click="theme = 'glacier'" class="group relative w-full aspect-square rounded-lg bg-[oklch(0.14_0.03_240)] border border-border" title="Glacier">
+                                <div class="absolute inset-1.5 rounded bg-[oklch(0.8_0.12_220)]" :class="theme === 'glacier' ? 'ring-2 ring-primary ring-offset-1 ring-offset-card' : ''"></div>
+                            </button>
+                            <button @click="theme = 'forest'" class="group relative w-full aspect-square rounded-lg bg-[oklch(0.13_0.02_150)] border border-border" title="Forest Ghost">
+                                <div class="absolute inset-1.5 rounded bg-[oklch(0.85_0.2_140)]" :class="theme === 'forest' ? 'ring-2 ring-primary ring-offset-1 ring-offset-card' : ''"></div>
+                            </button>
+                            <button @click="theme = 'synth'" class="group relative w-full aspect-square rounded-lg bg-[oklch(0.1_0.05_270)] border border-border" title="Synthwave">
+                                <div class="absolute inset-1.5 rounded bg-[oklch(0.7_0.3_340)]" :class="theme === 'synth' ? 'ring-2 ring-primary ring-offset-1 ring-offset-card' : ''"></div>
+                            </button>
+                            <button @click="theme = 'obsidian'" class="group relative w-full aspect-square rounded-lg bg-[oklch(0.08_0_0)] border border-border" title="Obsidian">
+                                <div class="absolute inset-1.5 rounded bg-white" :class="theme === 'obsidian' ? 'ring-2 ring-primary ring-offset-1 ring-offset-card' : ''"></div>
+                            </button>
+                            <button @click="theme = 'coral'" class="group relative w-full aspect-square rounded-lg bg-[oklch(0.14_0.02_10)] border border-border" title="Coral">
+                                <div class="absolute inset-1.5 rounded bg-[oklch(0.7_0.22_15)]" :class="theme === 'coral' ? 'ring-2 ring-primary ring-offset-1 ring-offset-card' : ''"></div>
+                            </button>
+                        </div>
+                        <!-- Show more themes -->
+                        <div x-show="!showAllThemes">
+                            <button @click="showAllThemes = true" style="font-family: var(--font-sans); font-size: 11px; font-weight: 500; color: var(--rc-text-faint);" class="hover:opacity-80 transition-opacity">Show more...</button>
+                        </div>
+                        <div x-show="showAllThemes" x-cloak x-transition class="grid grid-cols-4 gap-2">
+                            <button @click="theme = 'cyber'" class="group relative w-full aspect-square rounded-lg bg-[oklch(0.1_0.04_200)] border border-border" title="Cyber">
+                                <div class="absolute inset-1.5 rounded bg-[oklch(0.8_0.25_180)]" :class="theme === 'cyber' ? 'ring-2 ring-primary ring-offset-1 ring-offset-card' : ''"></div>
+                            </button>
+                            <button @click="theme = 'lavender'" class="group relative w-full aspect-square rounded-lg bg-[oklch(0.13_0.03_270)] border border-border" title="Lavender">
+                                <div class="absolute inset-1.5 rounded bg-[oklch(0.65_0.2_290)]" :class="theme === 'lavender' ? 'ring-2 ring-primary ring-offset-1 ring-offset-card' : ''"></div>
+                            </button>
+                            <button @click="theme = 'ember'" class="group relative w-full aspect-square rounded-lg bg-[oklch(0.11_0.03_15)] border border-border" title="Ember">
+                                <div class="absolute inset-1.5 rounded bg-[oklch(0.65_0.25_25)]" :class="theme === 'ember' ? 'ring-2 ring-primary ring-offset-1 ring-offset-card' : ''"></div>
+                            </button>
+                            <button @click="theme = 'mint'" class="group relative w-full aspect-square rounded-lg bg-[oklch(0.12_0.02_170)] border border-border" title="Mint">
+                                <div class="absolute inset-1.5 rounded bg-[oklch(0.75_0.18_160)]" :class="theme === 'mint' ? 'ring-2 ring-primary ring-offset-1 ring-offset-card' : ''"></div>
+                            </button>
+                            <button @click="theme = 'noir'" class="group relative w-full aspect-square rounded-lg bg-[oklch(0.1_0_0)] border border-border" title="Noir">
+                                <div class="absolute inset-1.5 rounded bg-[oklch(0.9_0_0)]" :class="theme === 'noir' ? 'ring-2 ring-primary ring-offset-1 ring-offset-card' : ''"></div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN CONTENT (offset by sidebar) -->
+        <div class="flex-1 flex flex-col min-h-screen relative transition-all duration-300" :class="sidebarOpen ? 'ml-[260px]' : 'ml-0'">
+            <!-- SIDEBAR TOGGLE (when closed) -->
+            <button x-show="!sidebarOpen" x-cloak @click="sidebarOpen = true" class="fixed top-8 left-8 z-50 w-10 h-10 rounded-2xl bg-card/60 backdrop-blur-md flex items-center justify-center shadow-2xl">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="opacity-60">
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                    <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
+            </button>
+
+        <!-- GLOBAL RAIL LINES -->
+        <div class="absolute inset-0 pointer-events-none mx-auto w-full max-w-[800px] px-4 sm:px-6 md:px-8 lg:px-0 z-0">
+            <div class="rail-line left-4 sm:left-6 md:left-8 lg:left-0 h-full"></div>
+            <div class="rail-line right-4 sm:right-6 md:right-8 lg:right-0 h-full"></div>
+        </div>
+
+        <!-- HERO / CHAT INTERFACE -->
+        <main class="flex-1 w-full flex flex-col items-center justify-center relative z-10">
+            <div class="mx-auto w-full max-w-[800px] h-full px-4 sm:px-6 md:px-8 lg:px-0 relative flex flex-col items-center justify-center">
+                
+                <div class="relative z-10 flex flex-col items-center text-center">
+                    <div class="text-[10px] text-primary mb-10 tracking-[0.4em] uppercase font-mono flex items-center gap-3 bg-primary/5 px-4 py-2 rounded-full">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="opacity-80">
+                            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                        </svg>
+                        [folder_name]
+                    </div>
+
+                    <h1 class="font-serif text-4xl md:text-5xl text-foreground leading-tight max-w-[600px] italic drop-shadow-sm">
+                        What would you like to build today?
+                    </h1>
+
+                    <div class="mt-14 relative group">
+                        <!-- Elongated 16cm x 8cm box with rounded-3xl corners -->
+                        <div class="prompt-box w-[16cm] max-w-[90vw] h-[8cm] border border-border backdrop-blur-xl rounded-[2rem] p-8 flex flex-col shadow-[0_32px_128px_-32px_rgba(0,0,0,0.8)] transition-all duration-700 group-hover:border-primary/40 group-hover:shadow-[0_32px_128px_-32px_var(--primary)]/20">
+                            <textarea 
+                                class="flex-1 bg-transparent border-none outline-none resize-none text-base font-sans leading-relaxed placeholder:text-muted-foreground/30 text-foreground selection:bg-primary/30"
+                                placeholder="Describe a feature, a bug, or @file..."
+                            ></textarea>
+                            
+                            <div class="flex justify-end pt-6">
+                                <button class="bg-primary text-background w-10 h-10 rounded-full flex items-center justify-center shadow-[0_8px_16px_rgba(0,0,0,0.4)]" aria-label="Send message">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="translate-x-[-1px] translate-y-[1px]">
+                                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Aesthetic Dual Glow -->
+                        <div class="absolute -inset-4 bg-primary/10 blur-[100px] rounded-full -z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
+                        <div class="absolute -inset-4 bg-secondary/10 blur-[100px] rounded-full -z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-1000 delay-100"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- FOOTER -->
+        <footer class="w-full border-t border-border z-10">
+            <div class="mx-auto w-full max-w-[800px] px-4 sm:px-6 md:px-8 lg:px-0 relative">
+                <div class="py-8 px-4 md:px-8 flex justify-between items-center text-xs text-muted-foreground">
+                    <span>recode labs</span>
+                    <span>© <span x-text="new Date().getFullYear()"></span></span>
+                </div>
+            </div>
+        </footer>
+
+        </div> <!-- end ml-[260px] wrapper -->
+
+    </div> <!-- end min-h-screen wrapper -->
+
+    <!-- COMMAND PALETTE -->
+    <div x-show="cmdPalette" x-cloak 
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="cmd-overlay" @click.self="cmdPalette = false" @keydown.escape.window="cmdPalette = false">
+        <div class="cmd-palette" @click.stop
+             x-transition:enter="transition ease-out duration-200 delay-75"
+             x-transition:enter-start="opacity-0 scale-95 translate-y-2"
+             x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+             x-transition:leave-end="opacity-0 scale-95 translate-y-2">
+            <div class="cmd-input-wrap">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
+                <input x-ref="cmdInput" type="text" class="cmd-input" placeholder="Search sessions, projects..." @input="cmdQuery = $event.target.value" x-init="$watch('cmdPalette', v => { if(v) setTimeout(() => $refs.cmdInput.focus(), 50) })">
+                <kbd style="font-family: var(--font-sans); font-size: 10px; color: var(--rc-text-faint); background: var(--rc-hover); padding: 2px 5px; border-radius: 4px;">ESC</kbd>
+            </div>
+            <div class="cmd-results">
+                <template x-if="cmdQuery.length === 0">
+                    <div>
+                        <div class="cmd-group-label">Recent</div>
+                        <div class="cmd-item active">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"/></svg>
+                            <span class="cmd-item-title">Fix auth redirect bug</span>
+                            <span class="cmd-item-project">shot-scraper</span>
+                        </div>
+                        <div class="cmd-item">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"/></svg>
+                            <span class="cmd-item-title">Database migrations</span>
+                            <span class="cmd-item-project">backend-api</span>
+                        </div>
+                        <div class="cmd-item">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"/></svg>
+                            <span class="cmd-item-title">Build landing page</span>
+                            <span class="cmd-item-project">recode-scratch</span>
+                        </div>
+                    </div>
+                </template>
+                <template x-if="cmdQuery.length > 0">
+                    <div>
+                        <div class="cmd-group-label">Results</div>
+                        <template x-for="item in filteredCmdItems" :key="item.title">
+                            <div class="cmd-item">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"/></svg>
+                                <span class="cmd-item-title" x-text="item.title"></span>
+                                <span class="cmd-item-project" x-text="item.project"></span>
+                            </div>
+                        </template>
+                    </div>
+                </template>
+            </div>
+            <div class="cmd-footer">
+                <span><kbd>↑</kbd> <kbd>↓</kbd> Navigate</span>
+                <span><kbd>↵</kbd> Open</span>
+                <span><kbd>ESC</kbd> Close</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Cmd+K / Ctrl+K to open command palette
+        document.addEventListener('keydown', function(e) {
+            if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+                e.preventDefault();
+                document.querySelector('[x-data]').__x.$data.cmdPalette = !document.querySelector('[x-data]').__x.$data.cmdPalette;
+            }
+        });
+
+        // Project dropdown toggle
+        document.querySelectorAll('.project-row').forEach((row) => {
+            row.addEventListener('click', function(e) {
+                if (e.target.closest('.project-add')) return;
+                this.classList.toggle('collapsed');
+                const threadList = this.nextElementSibling;
+                if (threadList && threadList.classList.contains('thread-list')) {
+                    threadList.classList.toggle('collapsed');
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>

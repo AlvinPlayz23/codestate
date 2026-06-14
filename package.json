@@ -1,0 +1,13 @@
+{
+  "name": "codestate",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "pnpm --filter @codestate/cli dev",
+    "build": "pnpm -r build",
+    "check": "pnpm -r check",
+    "codestate": "pnpm --dir packages/cli start"
+  },
+  "packageManager": "pnpm@9.15.0"
+}

@@ -1,0 +1,11 @@
+node_modules
+dist
+.codestate
+.opencode
+.env
+.env.local
+apps/web/dist
+apps/server/dist
+packages/*/dist
+.git
+*.tsbuildinfo
