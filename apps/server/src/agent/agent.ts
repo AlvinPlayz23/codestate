@@ -55,7 +55,7 @@ export function createAgent(options: AgentOptions) {
         await options.store.updateTitle(sessionId, userMessage.split("\n")[0].slice(0, 60));
       }
 
-      for (let step = 0; step < 12; step += 1) {
+      for (let step = 0; step < 450; step += 1) {
         if (controller.signal.aborted) {
           emit(options.events, { type: "session.error", sessionId, message: "Agent stopped by user." });
           return;

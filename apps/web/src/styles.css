@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..700;1,9..40,300..700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;700&display=swap");
 
 :root {
   --background: oklch(0.18 0.004 308);
@@ -43,7 +43,7 @@ body {
   min-height: 100vh;
   background: var(--background);
   color: var(--foreground);
-  font-family: "Geist Mono", ui-monospace, monospace;
+  font-family: "DM Sans", system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -142,7 +142,7 @@ svg { flex: 0 0 auto; stroke-width: 2; }
 .project-title { flex: 1; font-size: 0.78rem; }
 .project-count { color: var(--rc-text-faint); font-size: 0.66rem; }
 .thread-list { margin-left: 0.75rem; padding-left: 0.35rem; border-left: 1px solid var(--rc-border-soft); }
-.thread-row { width: 100%; display: flex; gap: 0.45rem; align-items: center; padding: 0.4rem 0.55rem; border-radius: 0.55rem; background: transparent; color: var(--rc-text-muted); font-size: 0.72rem; }
+.thread-row { width: 100%; display: flex; gap: 0.45rem; align-items: center; padding: 0.4rem 0.55rem; border-radius: 0.55rem; background: transparent; color: var(--rc-text-muted); font-size: 0.82rem; }
 .thread-row.active { background: var(--rc-hover); color: var(--rc-text); }
 .thread-row span:first-of-type { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .thread-delete { flex: 0 0 auto; padding: 0.2rem; border: 0; background: transparent; color: var(--rc-text-faint); border-radius: 0.3rem; cursor: pointer; opacity: 0; transition: opacity 0.15s ease, color 0.15s ease; }
@@ -166,7 +166,7 @@ svg { flex: 0 0 auto; stroke-width: 2; }
 .timeline { width: 100%; max-height: 0; overflow: auto; display: flex; flex-direction: column; gap: 0.65rem; padding: 0 1rem; margin-bottom: 1rem; opacity: 0; scroll-behavior: smooth; transition: max-height 0.35s ease, opacity 0.2s ease; }
 .chatting .timeline { flex: 1; max-height: none; min-height: 0; opacity: 1; padding: 0 1rem 1.2rem; }
 .timeline-end { min-height: 1px; }
-.approval-card h2 { margin: 0; font-family: "Instrument Serif", Georgia, serif; font-size: 1.9rem; font-weight: 400; }
+.approval-card h2 { margin: 0; font-size: 1.4rem; font-weight: 600; }
 
 .message, .approval-card { border-radius: 1rem; padding: 0.85rem 0.95rem; }
 
@@ -177,7 +177,7 @@ svg { flex: 0 0 auto; stroke-width: 2; }
 .message.assistant { align-self: flex-start; background: transparent; color: var(--foreground); padding-left: 0; box-shadow: none; }
 .message.assistant p { margin: 0 0 0.75rem; }
 .message.assistant p:last-child { margin-bottom: 0; }
-.message.assistant h1, .message.assistant h2, .message.assistant h3, .message.assistant h4 { margin: 1.2rem 0 0.5rem; font-family: "Instrument Serif", Georgia, serif; font-weight: 400; }
+.message.assistant h1, .message.assistant h2, .message.assistant h3, .message.assistant h4 { margin: 1.2rem 0 0.5rem; font-weight: 600; }
 .message.assistant h1 { font-size: 1.6rem; }
 .message.assistant h2 { font-size: 1.35rem; }
 .message.assistant h3 { font-size: 1.15rem; }
@@ -199,6 +199,7 @@ svg { flex: 0 0 auto; stroke-width: 2; }
 .tool-done-label, .tool-shimmer-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; font-size: 13.5px; }
 .tool-done-label { color: var(--rc-shimmer-base); }
 .tool-shimmer-text { background-image: linear-gradient(90deg, var(--rc-shimmer-base) 0%, var(--rc-shimmer-base) 25%, var(--rc-shimmer-peak) 50%, var(--rc-shimmer-base) 75%, var(--rc-shimmer-base) 100%); background-size: 200% 100%; background-repeat: no-repeat; background-clip: text; -webkit-background-clip: text; color: transparent; -webkit-text-fill-color: transparent; animation: shimmer 2s linear infinite; }
+pre, code { font-family: "JetBrains Mono", ui-monospace, monospace; }
 pre { overflow: auto; max-height: 22rem; margin: 0.8rem 0 0; padding: 0.9rem; border-radius: 0.8rem; background: rgba(0,0,0,0.28); color: var(--rc-text); }
 .tool-row pre { max-height: 16rem; margin: 0.45rem 0 0 1.25rem; padding: 0.7rem 0.8rem; border-radius: 0.65rem; background: color-mix(in oklch, var(--card), black 18%); color: var(--rc-text-muted); font-size: 12px; line-height: 1.45; }
 .tool-output.error { color: #ff7b5d; }
@@ -212,7 +213,7 @@ pre { overflow: auto; max-height: 22rem; margin: 0.8rem 0 0; padding: 0.9rem; bo
 .chatting .prompt-box { position: sticky; bottom: 1rem; z-index: 10; width: min(900px, calc(100vw - 2rem)); height: 5rem; min-height: 5rem; border-radius: 100rem; padding: 0.6rem 0.6rem 0.6rem 1.2rem; flex-direction: row; align-items: center; gap: 0.6rem; box-shadow: 0 18px 80px -42px rgba(0,0,0,0.8); }
 .prompt-box:focus-within { border-color: color-mix(in oklch, var(--primary), transparent 35%); box-shadow: 0 32px 128px -48px var(--primary); }
 [data-mode="light"] .prompt-box { background: color-mix(in oklch, var(--card), transparent 38%); }
-.prompt-box textarea { flex: 1; resize: none; border: 0; outline: 0; background: transparent; color: var(--foreground); line-height: 1.65; }
+.prompt-box textarea { flex: 1; resize: none; border: 0; outline: 0; background: transparent; color: var(--foreground); line-height: 1.65; font-size: 0.95rem; }
 .chatting .prompt-box textarea { height: 3.8rem; line-height: 3.8rem; overflow: hidden; font-size: 0.9rem; }
 .prompt-box textarea::placeholder { color: color-mix(in oklch, var(--muted), transparent 35%); }
 .composer-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 1rem; color: var(--rc-text-faint); font-size: 0.72rem; }

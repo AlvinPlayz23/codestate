@@ -1,4 +1,4 @@
-import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rename, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import type { StoredSession, SessionSummary, TimelineItem } from "@codestate/shared";
 
@@ -8,6 +8,7 @@ type StoredSessionFile = {
 
 export class JsonSessionStore {
   private filePath: string;
+  private writeLock: Promise<void> = Promise.resolve();
 
   constructor(dataDir: string) {
     this.filePath = path.join(dataDir, "sessions.json");
@@ -34,10 +35,23 @@ export class JsonSessionStore {
     }
   }
 
-  private async atomicWrite(data: StoredSessionFile) {
-    const tmp = this.filePath + ".tmp";
-    await writeFile(tmp, JSON.stringify(data, null, 2), "utf8");
-    await rename(tmp, this.filePath);
+  private atomicWrite(data: StoredSessionFile): Promise<void> {
+    const doWrite = async () => {
+      const tmp = this.filePath + ".tmp";
+      await writeFile(tmp, JSON.stringify(data, null, 2), "utf8");
+      try {
+        await rename(tmp, this.filePath);
+      } catch (err: any) {
+        if (err.code === "EPERM") {
+          await unlink(this.filePath).catch(() => {});
+          await rename(tmp, this.filePath);
+        } else {
+          throw err;
+        }
+      }
+    };
+    this.writeLock = this.writeLock.catch(() => {}).then(doWrite);
+    return this.writeLock;
   }
 
   async list(projectRoot: string): Promise<SessionSummary[]> {
