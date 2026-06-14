@@ -47,6 +47,7 @@ export function App() {
   const [streamingText, setStreamingText] = useState("");
   const [busy, setBusy] = useState(false);
   const [pendingApproval, setPendingApproval] = useState(false);
+  const [yolo, setYolo] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
@@ -196,7 +197,7 @@ export function App() {
     const response = await fetch("/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sessionId, message })
+      body: JSON.stringify({ sessionId, message, yolo })
     });
     const data = (await response.json()) as { sessionId: string };
     setSessionId(data.sessionId);
@@ -305,6 +306,7 @@ export function App() {
             {items.map((item, index) => {
               if (item.type === "message") return <MessageBubble key={item.message.id} message={item.message} />;
               if (item.type === "tool") return <ToolCard key={`${item.call.id}-${index}`} call={item.call} result={item.result} />;
+              if (item.resolved !== undefined) return null;
               return <ApprovalCard key={item.request.id} item={item} onRespond={respondToApproval} />;
             })}
             {streamingText && <MessageBubble message={{ id: "stream", role: "assistant", content: streamingText, createdAt: Date.now() }} />}
@@ -327,9 +329,15 @@ export function App() {
             />
             <div className="composer-footer">
               <span>{project?.model ?? "cloud model"}</span>
-              <button type="submit" className={busy ? "stop-btn" : "send-btn"} disabled={!busy && !draft.trim()} aria-label={busy ? "Stop" : "Send message"}>
-                {busy ? <Square size={14} fill="currentColor" /> : <Send size={16} />}
-              </button>
+              <div className="composer-right">
+                <button type="button" className={`ay-toggle ${yolo ? "yolo" : ""}`} onClick={() => setYolo((v) => !v)} title={yolo ? "Yolo mode — no approvals" : "Approval mode"}>
+                  <span className="ay-knob">A</span>
+                  <span className="ay-knob">Y</span>
+                </button>
+                <button type="submit" className={busy ? "stop-btn" : "send-btn"} disabled={!busy && !draft.trim()} aria-label={busy ? "Stop" : "Send message"}>
+                  {busy ? <Square size={14} fill="currentColor" /> : <Send size={16} />}
+                </button>
+              </div>
             </div>
           </form>
         </main>
@@ -440,17 +448,28 @@ function formatToolLabel(call: ToolCall, result?: ToolResult) {
 }
 
 function ApprovalCard({ item, onRespond }: { item: Extract<TimelineItem, { type: "approval" }>; onRespond: (id: string, approved: boolean) => void }) {
+  const toolName = item.request.toolCall.name;
   return (
     <article className="approval-card">
-      <p className="eyebrow">Approval required</p>
-      <h2>{item.request.toolCall.name}</h2>
-      <pre>{item.request.preview}</pre>
+      <div className="approval-header">
+        <span className="approval-tool-badge">{toolName}</span>
+        <span className="approval-eyebrow">needs your approval</span>
+      </div>
+      <pre className="approval-preview">{item.request.preview}</pre>
       {item.resolved === undefined ? (
         <div className="approval-actions">
-          <button type="button" onClick={() => onRespond(item.request.id, true)}>Approve</button>
-          <button type="button" className="reject" onClick={() => onRespond(item.request.id, false)}>Reject</button>
+          <button type="button" className="approval-btn approve" onClick={() => onRespond(item.request.id, true)}>
+            <Check size={13} /> Approve
+          </button>
+          <button type="button" className="approval-btn reject" onClick={() => onRespond(item.request.id, false)}>
+            <X size={13} /> Reject
+          </button>
         </div>
-      ) : <span className="resolved">{item.resolved ? "Approved" : "Rejected"}</span>}
+      ) : (
+        <div className={`approval-resolved ${item.resolved ? "approved" : "rejected"}`}>
+          {item.resolved ? <><Check size={12} /> Approved</> : <><X size={12} /> Rejected</>}
+        </div>
+      )}
     </article>
   );
 }

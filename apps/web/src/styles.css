@@ -166,9 +166,20 @@ svg { flex: 0 0 auto; stroke-width: 2; }
 .timeline { width: 100%; max-height: 0; overflow: auto; display: flex; flex-direction: column; gap: 0.65rem; padding: 0 1rem; margin-bottom: 1rem; opacity: 0; scroll-behavior: smooth; transition: max-height 0.35s ease, opacity 0.2s ease; }
 .chatting .timeline { flex: 1; max-height: none; min-height: 0; opacity: 1; padding: 0 1rem 1.2rem; }
 .timeline-end { min-height: 1px; }
-.approval-card h2 { margin: 0; font-size: 1.4rem; font-weight: 600; }
+.approval-card { align-self: stretch; border: 1px solid var(--rc-border-soft); background: color-mix(in oklch, var(--card), transparent 40%); border-radius: 1rem; overflow: hidden; }
+.approval-header { display: flex; align-items: center; gap: 0.75rem; padding: 0.7rem 1rem; border-bottom: 1px solid var(--rc-border-soft); }
+.approval-tool-badge { font-size: 0.85rem; font-weight: 600; color: var(--primary); background: color-mix(in oklch, var(--primary), transparent 88%); padding: 0.25rem 0.7rem; border-radius: 0.5rem; letter-spacing: 0.03em; }
+.approval-eyebrow { font-size: 0.85rem; font-weight: 500; color: var(--rc-text-faint); }
+.approval-preview { margin: 0; padding: 0.75rem 1rem; border-radius: 0; background: rgba(0,0,0,0.18); max-height: 6rem; font-size: 0.88rem; line-height: 1.55; overflow: auto; }
+.approval-actions { display: flex; gap: 0.65rem; padding: 0.7rem 1rem; border-top: 1px solid var(--rc-border-soft); }
+.approval-btn { display: inline-flex; align-items: center; gap: 0.45rem; padding: 0.55rem 1.2rem; border-radius: 0.65rem; border: 0; cursor: pointer; font-size: 0.9rem; font-weight: 600; }
+.approval-btn.approve { background: var(--primary); color: var(--background); }
+.approval-btn.reject { background: var(--rc-hover-strong); color: var(--rc-text-muted); }
+.approval-resolved { display: flex; align-items: center; gap: 0.45rem; padding: 0.8rem 1.1rem; font-size: 0.9rem; font-weight: 500; border-top: 1px solid var(--rc-border-soft); }
+.approval-resolved.approved { color: #10b981; }
+.approval-resolved.rejected { color: var(--rc-text-faint); }
 
-.message, .approval-card { border-radius: 1rem; padding: 0.85rem 0.95rem; }
+.message { border-radius: 1rem; padding: 0.85rem 0.95rem; }
 
 .message { max-width: 78%; line-height: 1.6; }
 .message.user { white-space: pre-wrap; }
@@ -190,7 +201,6 @@ svg { flex: 0 0 auto; stroke-width: 2; }
 .message.assistant table { border-collapse: collapse; margin: 0.75rem 0; font-size: 0.9em; }
 .message.assistant th, .message.assistant td { padding: 0.4rem 0.75rem; border: 1px solid var(--border); }
 .message.assistant th { background: rgba(0,0,0,0.15); font-weight: 600; }
-.approval-card { align-self: stretch; border: 1px solid var(--rc-border-soft); background: color-mix(in oklch, var(--card), transparent 58%); }
 .tool-row { align-self: stretch; font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13.5px; line-height: 1.35; color: var(--rc-text-faint); padding: 0.2rem 0.1rem; }
 .tool-label { width: 100%; display: flex; align-items: center; gap: 6px; min-width: 0; border: 0; padding: 0; background: transparent; color: inherit; text-align: left; cursor: pointer; }
 .tool-label:disabled { cursor: default; }
@@ -219,14 +229,17 @@ pre { overflow: auto; max-height: 22rem; margin: 0.8rem 0 0; padding: 0.9rem; bo
 .composer-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 1rem; color: var(--rc-text-faint); font-size: 0.72rem; }
 .chatting .composer-footer { padding-top: 0; gap: 0.8rem; }
 .chatting .composer-footer span { display: none; }
-.send-btn, .stop-btn, .approval-actions button { width: 2.6rem; height: 2.6rem; border: 0; border-radius: 50%; cursor: pointer; background: var(--primary); color: var(--background); font-weight: 800; }
+.send-btn, .stop-btn { width: 2.6rem; height: 2.6rem; border: 0; border-radius: 50%; cursor: pointer; background: var(--primary); color: var(--background); font-weight: 800; }
 .send-btn, .stop-btn { display: inline-grid; place-items: center; }
 .send-btn:disabled { opacity: 0.35; cursor: not-allowed; }
 .stop-btn { background: #ef4444; color: white; }
-.approval-actions { display: flex; gap: 0.7rem; margin-top: 1rem; }
-.approval-actions button { width: auto; border-radius: 0.8rem; padding: 0 1rem; }
-.approval-actions .reject { background: var(--rc-hover-strong); color: var(--rc-text); }
-.resolved { display: inline-block; margin-top: 0.8rem; color: var(--primary); }
+.composer-right { display: flex; align-items: center; gap: 0.5rem; }
+.ay-toggle { position: relative; display: flex; align-items: center; border-radius: 999px; border: 1px solid var(--rc-border-soft); background: var(--rc-hover); padding: 0.18rem; cursor: pointer; overflow: hidden; color: var(--rc-text-faint); }
+.ay-toggle::before { content: ""; position: absolute; left: 0.18rem; width: 1.5rem; height: 1.5rem; border-radius: 50%; background: var(--primary); transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1); }
+.ay-toggle.yolo::before { transform: translateX(1.5rem); }
+.ay-knob { position: relative; z-index: 1; width: 1.5rem; height: 1.5rem; display: grid; place-items: center; font-size: 0.62rem; font-weight: 700; border-radius: 50%; pointer-events: none; transition: color 0.18s ease; }
+.ay-toggle:not(.yolo) .ay-knob:first-child { color: var(--background); }
+.ay-toggle.yolo .ay-knob:last-child { color: var(--background); }
 
 footer { width: min(800px, calc(100vw - 2rem)); margin: 0 auto; padding: 1.5rem 1rem; display: flex; justify-content: space-between; color: var(--rc-text-muted); font-size: 0.75rem; }
 .chatting footer { display: none; }

@@ -83,7 +83,7 @@ export function createApp(options: ServerOptions) {
   app.post("/api/chat", async (c) => {
     const body = await c.req.json<ChatRequest>();
     const sessionId = body.sessionId || crypto.randomUUID();
-    void agent.run(sessionId, body.message);
+    void agent.run(sessionId, body.message, body.yolo ?? false);
     return c.json({ sessionId });
   });
 

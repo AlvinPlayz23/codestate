@@ -21,7 +21,7 @@ export function createAgent(options: AgentOptions) {
   const pendingApprovals = new Map<string, PendingApproval>();
   const abortControllers = new Map<string, AbortController>();
 
-  async function run(sessionId: string, userMessage: string) {
+  async function run(sessionId: string, userMessage: string, yolo = false) {
     const controller = new AbortController();
     abortControllers.set(sessionId, controller);
 
@@ -91,7 +91,7 @@ export function createAgent(options: AgentOptions) {
           await options.store.appendTimeline(sessionId, toolItem);
           emit(options.events, { type: "tool.started", sessionId, toolCall });
 
-          const result = await executeTool(sessionId, toolCall);
+          const result = await executeTool(sessionId, toolCall, yolo);
           await options.store.updateTimelineItem(
             sessionId,
             (item) => item.type === "tool" && item.call.id === toolCall.id,
@@ -138,9 +138,9 @@ export function createAgent(options: AgentOptions) {
     }
   }
 
-  async function executeTool(sessionId: string, toolCall: ToolCall): Promise<ToolResult> {
+  async function executeTool(sessionId: string, toolCall: ToolCall, yolo: boolean): Promise<ToolResult> {
     try {
-      if (toolCall.name === "write" || toolCall.name === "apply" || toolCall.name === "run") {
+      if (!yolo && (toolCall.name === "write" || toolCall.name === "apply" || toolCall.name === "run")) {
         const approved = await requestApproval(sessionId, toolCall, previewToolCall(toolCall));
         if (!approved) return { callId: toolCall.id, ok: false, output: "User rejected this tool call." };
       }
