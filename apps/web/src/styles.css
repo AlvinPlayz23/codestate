@@ -219,7 +219,7 @@ pre { overflow: auto; max-height: 22rem; margin: 0.8rem 0 0; padding: 0.9rem; bo
 .dotm-square-8 span { width: var(--dot-size); height: var(--dot-size); border-radius: 50%; background: currentColor; opacity: 0.14; transform: scale(0.72); animation: dotm-wave var(--speed) ease-in-out infinite; }
 .dotm-square-8.bloom span { box-shadow: 0 0 4px color-mix(in oklch, currentColor, transparent 55%); }
 
-.prompt-box { width: min(16cm, 90vw); height: min(8cm, 38vh); border: 1px solid var(--border); border-radius: 2rem; padding: 1.8rem; display: flex; flex-direction: column; background: rgba(255,255,255,0.03); backdrop-filter: blur(24px); box-shadow: 0 32px 128px -32px rgba(0,0,0,0.8); transition: width 0.35s ease, height 0.35s ease, border-radius 0.35s ease, padding 0.35s ease, border-color 0.4s ease, box-shadow 0.4s ease; }
+.prompt-box { position: relative; width: min(16cm, 90vw); height: min(8cm, 38vh); border: 1px solid var(--border); border-radius: 2rem; padding: 1.8rem; display: flex; flex-direction: column; background: rgba(255,255,255,0.03); backdrop-filter: blur(24px); box-shadow: 0 32px 128px -32px rgba(0,0,0,0.8); transition: width 0.35s ease, height 0.35s ease, border-radius 0.35s ease, padding 0.35s ease, border-color 0.4s ease, box-shadow 0.4s ease; }
 .chatting .prompt-box { position: sticky; bottom: 1rem; z-index: 10; width: min(900px, calc(100vw - 2rem)); height: 5rem; min-height: 5rem; border-radius: 100rem; padding: 0.6rem 0.6rem 0.6rem 1.2rem; flex-direction: row; align-items: center; gap: 0.6rem; box-shadow: 0 18px 80px -42px rgba(0,0,0,0.8); }
 .prompt-box:focus-within { border-color: color-mix(in oklch, var(--primary), transparent 35%); box-shadow: 0 32px 128px -48px var(--primary); }
 [data-mode="light"] .prompt-box { background: color-mix(in oklch, var(--card), transparent 38%); }
@@ -240,6 +240,11 @@ pre { overflow: auto; max-height: 22rem; margin: 0.8rem 0 0; padding: 0.9rem; bo
 .ay-knob { position: relative; z-index: 1; width: 1.5rem; height: 1.5rem; display: grid; place-items: center; font-size: 0.62rem; font-weight: 700; border-radius: 50%; pointer-events: none; transition: color 0.18s ease; }
 .ay-toggle:not(.yolo) .ay-knob:first-child { color: var(--background); }
 .ay-toggle.yolo .ay-knob:last-child { color: var(--background); }
+.file-mention-menu { position: absolute; left: 1.2rem; right: 1.2rem; bottom: calc(100% + 0.55rem); z-index: 20; max-height: 15rem; overflow: auto; padding: 0.45rem; border: 1px solid var(--rc-border-soft); border-radius: 1rem; background: color-mix(in oklch, var(--card), transparent 5%); box-shadow: 0 22px 70px -24px rgba(0,0,0,0.75); backdrop-filter: blur(22px); }
+.file-mention-menu .section-label { padding: 0.35rem 0.45rem 0.45rem; }
+.file-mention-menu button { width: 100%; display: flex; align-items: center; gap: 0.5rem; border: 0; border-radius: 0.65rem; padding: 0.55rem 0.6rem; background: transparent; color: var(--rc-text-muted); cursor: pointer; text-align: left; }
+.file-mention-menu button:hover, .file-mention-menu button.active { background: var(--rc-hover); color: var(--rc-text); }
+.file-mention-menu button span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 0.78rem; }
 
 footer { width: min(800px, calc(100vw - 2rem)); margin: 0 auto; padding: 1.5rem 1rem; display: flex; justify-content: space-between; color: var(--rc-text-muted); font-size: 0.75rem; }
 .chatting footer { display: none; }

@@ -23,10 +23,13 @@ export function createApp(options: ServerOptions) {
   const tools = createTools({ projectRoot: options.projectRoot });
   const model = process.env.CODESTATE_MODEL ?? "gpt-4.1";
   const agent = createAgent({ projectRoot: options.projectRoot, model, events, tools, store });
-
-  void store.init();
+  const storeReady = store.init();
 
   app.use("*", cors());
+  app.use("/api/*", async (_c, next) => {
+    await storeReady;
+    await next();
+  });
 
   app.get("/api/health", (c) => c.json({ ok: true }));
 
@@ -83,7 +86,7 @@ export function createApp(options: ServerOptions) {
   app.post("/api/chat", async (c) => {
     const body = await c.req.json<ChatRequest>();
     const sessionId = body.sessionId || crypto.randomUUID();
-    void agent.run(sessionId, body.message, body.yolo ?? false);
+    void agent.run(sessionId, body.message, body.yolo ?? false, body.displayMessage);
     return c.json({ sessionId });
   });
 
@@ -102,6 +105,11 @@ export function createApp(options: ServerOptions) {
   app.get("/api/files/tree", async (c) => {
     const path = c.req.query("path") ?? ".";
     return c.json(await tools.list({ path }));
+  });
+
+  app.get("/api/files/search", async (c) => {
+    const query = c.req.query("q") ?? "";
+    return c.json(await tools.findFiles({ query }));
   });
 
   app.get("/api/files/read", async (c) => {

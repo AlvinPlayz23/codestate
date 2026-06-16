@@ -45,6 +45,13 @@ export function createTools(context: ToolContext) {
       };
     },
 
+    findFiles: async ({ query = "", limit = 25 }: { query?: string; limit?: number }) => {
+      const normalized = query.trim().toLowerCase().replaceAll("\\", "/");
+      const matches: Array<{ path: string; name: string }> = [];
+      await collectFiles(context.projectRoot, context.projectRoot, normalized, Math.min(Math.max(limit, 1), 50), matches);
+      return { query, files: matches };
+    },
+
     search: async ({ query, path: requestedPath = "." }: { query: string; path?: string }) => {
       const dir = resolveInsideRoot(context.projectRoot, requestedPath);
       try {
@@ -79,6 +86,33 @@ export function createTools(context: ToolContext) {
       return { exitCode: result.exitCode, output: result.all ?? "" };
     }
   };
+}
+
+async function collectFiles(
+  directory: string,
+  root: string,
+  query: string,
+  limit: number,
+  matches: Array<{ path: string; name: string }>
+): Promise<void> {
+  if (matches.length >= limit) return;
+  const entries = await readdir(directory, { withFileTypes: true });
+
+  for (const entry of entries) {
+    if (matches.length >= limit) return;
+    if (ignoredDirectories.has(entry.name)) continue;
+
+    const absolute = path.join(directory, entry.name);
+    if (entry.isDirectory()) {
+      await collectFiles(absolute, root, query, limit, matches);
+      continue;
+    }
+
+    if (!entry.isFile()) continue;
+    const relative = path.relative(root, absolute).replaceAll("\\", "/");
+    if (query && !relative.toLowerCase().includes(query)) continue;
+    matches.push({ path: relative, name: entry.name });
+  }
 }
 
 async function searchDirectory(directory: string, query: string, root: string): Promise<string[]> {

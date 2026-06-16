@@ -11,12 +11,12 @@ export function createAgent(options: AgentOptions) {
   const approvals = createApprovalManager(options.events);
   const abortControllers = new Map<string, AbortController>();
 
-  async function run(sessionId: string, userMessage: string, yolo = false) {
+  async function run(sessionId: string, userMessage: string, yolo = false, displayMessage = userMessage) {
     const controller = new AbortController();
     abortControllers.set(sessionId, controller);
 
     try {
-      await runTurn({ ...options, approvals }, sessionId, userMessage, yolo, controller.signal);
+      await runTurn({ ...options, approvals }, sessionId, userMessage, yolo, controller.signal, displayMessage);
     } catch (error) {
       // Safety net for failures before the turn loop's own handling (e.g. the
       // store rejecting). The loop persists and reports everything else itself.

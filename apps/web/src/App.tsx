@@ -26,6 +26,17 @@ type ProjectState = {
   model: string;
 };
 
+type FileSuggestion = {
+  path: string;
+  name: string;
+};
+
+type ActiveFileMention = {
+  start: number;
+  end: number;
+  query: string;
+};
+
 type ThemeName = "recode" | "orchid" | "solar" | "glacier" | "forest" | "synth" | "obsidian" | "coral";
 
 const themes: Array<{ name: ThemeName; label: string }> = [
@@ -55,11 +66,16 @@ export function App() {
   const [mode, setMode] = useState<"dark" | "light">("dark");
   const [search, setSearch] = useState("");
   const [sessions, setSessions] = useState<SessionSummary[]>([]);
+  const [fileSuggestions, setFileSuggestions] = useState<FileSuggestion[]>([]);
+  const [activeMention, setActiveMention] = useState<ActiveFileMention | null>(null);
+  const [mentionIndex, setMentionIndex] = useState(0);
   const timelineRef = useRef<HTMLElement | null>(null);
   const timelineEndRef = useRef<HTMLDivElement | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   const projectName = project?.projectRoot.split(/[\\/]/).filter(Boolean).at(-1) ?? "Loading project";
   const hasConversation = items.length > 0 || Boolean(streamingText) || busy;
+  const activeMentionQuery = activeMention?.query ?? null;
 
   useEffect(() => {
     if (!hasConversation) return;
@@ -76,9 +92,33 @@ export function App() {
   useEffect(() => {
     fetch("/api/sessions")
       .then((r) => r.json())
-      .then((data) => setSessions(data as SessionSummary[]))
+      .then((data) => {
+        const savedSessions = data as SessionSummary[];
+        setSessions(savedSessions);
+        if (savedSessions[0]) void loadSession(savedSessions[0].id);
+      })
       .catch(() => setSessions([]));
   }, []);
+
+  useEffect(() => {
+    if (activeMentionQuery === null) {
+      setFileSuggestions([]);
+      return;
+    }
+
+    const controller = new AbortController();
+    fetch(`/api/files/search?q=${encodeURIComponent(activeMentionQuery)}`, { signal: controller.signal })
+      .then((r) => r.json())
+      .then((data: { files?: FileSuggestion[] }) => {
+        setFileSuggestions(data.files ?? []);
+        setMentionIndex(0);
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) setFileSuggestions([]);
+      });
+
+    return () => controller.abort();
+  }, [activeMentionQuery]);
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -169,6 +209,50 @@ export function App() {
       .catch(() => {});
   }
 
+  function handleDraftChange(value: string, cursor: number | null) {
+    setDraft(value);
+    updateActiveFileMention(value, cursor ?? value.length);
+  }
+
+  function updateActiveFileMention(value: string, cursor: number) {
+    const mention = getActiveFileMention(value, cursor);
+    setActiveMention(mention);
+    if (!mention) setMentionIndex(0);
+  }
+
+  function selectFileMention(file: FileSuggestion) {
+    if (!activeMention) return;
+    const inserted = `@${file.path}`;
+    const nextDraft = `${draft.slice(0, activeMention.start)}${inserted} ${draft.slice(activeMention.end)}`;
+    const cursor = activeMention.start + inserted.length + 1;
+    setDraft(nextDraft);
+    setActiveMention(null);
+    setFileSuggestions([]);
+    window.setTimeout(() => {
+      textareaRef.current?.focus();
+      textareaRef.current?.setSelectionRange(cursor, cursor);
+    }, 0);
+  }
+
+  async function expandFileMentions(message: string) {
+    const paths = getFileMentionPaths(message);
+    if (paths.length === 0) return message;
+
+    const files = await Promise.all(
+      paths.map(async (filePath) => {
+        const response = await fetch(`/api/files/read?path=${encodeURIComponent(filePath)}`);
+        if (!response.ok) return { path: filePath, content: `Unable to read ${filePath}.` };
+        const data = (await response.json()) as { path?: string; content?: string };
+        return { path: data.path ?? filePath, content: data.content ?? "" };
+      })
+    );
+
+    const context = files
+      .map((file) => `--- ${file.path} ---\n${file.content}`)
+      .join("\n\n");
+    return `${message}\n\nReferenced file context:\n${context}`;
+  }
+
   async function sendMessage(event: FormEvent) {
     event.preventDefault();
     const message = draft.trim();
@@ -188,20 +272,39 @@ export function App() {
     if (!message) return;
 
     setDraft("");
+    setActiveMention(null);
+    setFileSuggestions([]);
     setBusy(true);
     setItems((current) => [
       ...current,
       { type: "message", message: { id: crypto.randomUUID(), role: "user", content: message, createdAt: Date.now() } }
     ]);
 
-    const response = await fetch("/api/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sessionId, message, yolo })
-    });
-    const data = (await response.json()) as { sessionId: string };
-    setSessionId(data.sessionId);
-    refreshSessions();
+    try {
+      const modelMessage = await expandFileMentions(message);
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId, message: modelMessage, displayMessage: message, yolo })
+      });
+      const data = (await response.json()) as { sessionId: string };
+      setSessionId(data.sessionId);
+      refreshSessions();
+    } catch (error) {
+      setBusy(false);
+      setItems((current) => [
+        ...current,
+        {
+          type: "message",
+          message: {
+            id: crypto.randomUUID(),
+            role: "assistant",
+            content: error instanceof Error ? error.message : String(error),
+            createdAt: Date.now()
+          }
+        }
+      ]);
+    }
   }
 
   async function respondToApproval(approvalId: string, approved: boolean) {
@@ -316,11 +419,59 @@ export function App() {
           {busy && <BloomGlow label={pendingApproval ? "waiting for approval" : "agent running"} />}
 
           <form className="prompt-box" onSubmit={sendMessage}>
+            {activeMention && fileSuggestions.length > 0 && (
+              <div className="file-mention-menu">
+                <span className="section-label">Files</span>
+                {fileSuggestions.map((file, index) => (
+                  <button
+                    key={file.path}
+                    type="button"
+                    className={index === mentionIndex ? "active" : ""}
+                    onMouseDown={(event) => {
+                      event.preventDefault();
+                      selectFileMention(file);
+                    }}
+                  >
+                    <FileText size={13} />
+                    <span>{file.path}</span>
+                  </button>
+                ))}
+              </div>
+            )}
             <textarea
+              ref={textareaRef}
               value={draft}
-              onChange={(event) => setDraft(event.target.value)}
+              onChange={(event) => handleDraftChange(event.target.value, event.target.selectionStart)}
+              onClick={(event) => updateActiveFileMention(draft, event.currentTarget.selectionStart)}
+              onKeyUp={(event) => {
+                if (["ArrowDown", "ArrowUp", "Tab", "Enter", "Escape"].includes(event.key)) return;
+                updateActiveFileMention(draft, event.currentTarget.selectionStart);
+              }}
               placeholder={busy ? "Agent is working... press Stop to cancel" : "Describe a feature, a bug, or @file..."}
               onKeyDown={(event) => {
+                if (activeMention && fileSuggestions.length > 0) {
+                  if (event.key === "ArrowDown") {
+                    event.preventDefault();
+                    setMentionIndex((index) => (index + 1) % fileSuggestions.length);
+                    return;
+                  }
+                  if (event.key === "ArrowUp") {
+                    event.preventDefault();
+                    setMentionIndex((index) => (index - 1 + fileSuggestions.length) % fileSuggestions.length);
+                    return;
+                  }
+                  if (event.key === "Tab" || event.key === "Enter") {
+                    event.preventDefault();
+                    selectFileMention(fileSuggestions[mentionIndex]);
+                    return;
+                  }
+                  if (event.key === "Escape") {
+                    event.preventDefault();
+                    setActiveMention(null);
+                    setFileSuggestions([]);
+                    return;
+                  }
+                }
                 if (event.key === "Enter" && !event.shiftKey) {
                   event.preventDefault();
                   void sendMessage(event);
@@ -382,6 +533,21 @@ export function App() {
       )}
     </div>
   );
+}
+
+function getActiveFileMention(value: string, cursor: number): ActiveFileMention | null {
+  const beforeCursor = value.slice(0, cursor);
+  const start = beforeCursor.search(/(?:^|\s)@[^\s@]*$/);
+  if (start === -1) return null;
+  const at = beforeCursor.indexOf("@", start);
+  if (at === -1) return null;
+  const query = beforeCursor.slice(at + 1);
+  return { start: at, end: cursor, query };
+}
+
+function getFileMentionPaths(message: string): string[] {
+  const matches = message.matchAll(/(?:^|\s)@([^\s@]+)/g);
+  return Array.from(new Set(Array.from(matches, (match) => match[1].replace(/[.,;:!?\])}]+$/, "")).filter(Boolean)));
 }
 
 function MessageBubble({ message }: { message: ChatMessage }) {

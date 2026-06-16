@@ -28,7 +28,8 @@ export async function runTurn(
   sessionId: string,
   userMessage: string,
   yolo: boolean,
-  signal: AbortSignal
+  signal: AbortSignal,
+  displayMessage = userMessage
 ): Promise<void> {
   const { store, events, tools, approvals } = deps;
 
@@ -38,7 +39,7 @@ export async function runTurn(
       id: sessionId,
       projectRoot: deps.projectRoot,
       model: deps.model,
-      title: userMessage.split("\n")[0].slice(0, 60)
+      title: displayMessage.split("\n")[0].slice(0, 60)
     });
   }
 
@@ -57,13 +58,13 @@ export async function runTurn(
   const userTimeline: ChatMessage = {
     id: crypto.randomUUID(),
     role: "user",
-    content: userMessage,
+    content: displayMessage,
     createdAt: Date.now()
   };
   await store.appendTimeline(sessionId, { type: "message", message: userTimeline });
 
   if (session.timeline.length <= 1 && session.title === "New session") {
-    await store.updateTitle(sessionId, userMessage.split("\n")[0].slice(0, 60));
+    await store.updateTitle(sessionId, displayMessage.split("\n")[0].slice(0, 60));
   }
 
   // Persist the user turn immediately so it survives an interruption that lands

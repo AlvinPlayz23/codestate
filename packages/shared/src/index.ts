@@ -68,6 +68,7 @@ export type ServerEvent =
 export type ChatRequest = {
   sessionId?: string;
   message: string;
+  displayMessage?: string;
   yolo?: boolean;
 };
 
