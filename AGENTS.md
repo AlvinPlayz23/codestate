@@ -47,6 +47,6 @@ apps/web/           # React + Vite chat UI
 ## Gotchas
 
 - `pnpm codestate` runs `pnpm --dir packages/cli start`. The CLI's `process.cwd()` is `packages/cli`, so `.env.local` and `--project` matter.
-- The agent loop caps at 12 tool steps per prompt to prevent runaway loops.
+- The agent loop caps at 450 tool steps per prompt to prevent runaway loops.
 - `pnpm --dir <codestate-root> codestate --project <other-dir>` is how you run Codestate on a different project from outside the repo.
 - After approval, assistant messages with `tool_calls` must have `content` normalized to `""` (not `null`) or OpenAI-compatible providers may reject the next call.

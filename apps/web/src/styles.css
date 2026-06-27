@@ -171,6 +171,13 @@ svg { flex: 0 0 auto; stroke-width: 2; }
 .approval-tool-badge { font-size: 0.85rem; font-weight: 600; color: var(--primary); background: color-mix(in oklch, var(--primary), transparent 88%); padding: 0.25rem 0.7rem; border-radius: 0.5rem; letter-spacing: 0.03em; }
 .approval-eyebrow { font-size: 0.85rem; font-weight: 500; color: var(--rc-text-faint); }
 .approval-preview { margin: 0; padding: 0.75rem 1rem; border-radius: 0; background: rgba(0,0,0,0.18); max-height: 6rem; font-size: 0.88rem; line-height: 1.55; overflow: auto; }
+.diff-preview { margin: 0; max-height: 18rem; overflow: auto; background: rgba(0,0,0,0.22); font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 0.8rem; line-height: 1.5; }
+.diff-line { padding: 0 1rem; white-space: pre; }
+.diff-add { background: rgba(16,185,129,0.12); color: #6ee7b7; }
+.diff-del { background: rgba(239,68,68,0.12); color: #fca5a5; }
+.diff-hunk { color: var(--secondary); background: rgba(0,0,0,0.15); }
+.diff-header { color: var(--rc-text-faint); }
+.diff-ctx { color: var(--rc-text-muted); }
 .approval-actions { display: flex; gap: 0.65rem; padding: 0.7rem 1rem; border-top: 1px solid var(--rc-border-soft); }
 .approval-btn { display: inline-flex; align-items: center; gap: 0.45rem; padding: 0.55rem 1.2rem; border-radius: 0.65rem; border: 0; cursor: pointer; font-size: 0.9rem; font-weight: 600; }
 .approval-btn.approve { background: var(--primary); color: var(--background); }

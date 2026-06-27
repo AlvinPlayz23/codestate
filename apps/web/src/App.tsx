@@ -615,13 +615,18 @@ function formatToolLabel(call: ToolCall, result?: ToolResult) {
 
 function ApprovalCard({ item, onRespond }: { item: Extract<TimelineItem, { type: "approval" }>; onRespond: (id: string, approved: boolean) => void }) {
   const toolName = item.request.toolCall.name;
+  const isDiff = toolName === "apply" && item.request.preview.startsWith("---");
   return (
     <article className="approval-card">
       <div className="approval-header">
         <span className="approval-tool-badge">{toolName}</span>
         <span className="approval-eyebrow">needs your approval</span>
       </div>
-      <pre className="approval-preview">{item.request.preview}</pre>
+      {isDiff ? (
+        <DiffPreview text={item.request.preview} />
+      ) : (
+        <pre className="approval-preview">{item.request.preview}</pre>
+      )}
       {item.resolved === undefined ? (
         <div className="approval-actions">
           <button type="button" className="approval-btn approve" onClick={() => onRespond(item.request.id, true)}>
@@ -637,5 +642,25 @@ function ApprovalCard({ item, onRespond }: { item: Extract<TimelineItem, { type:
         </div>
       )}
     </article>
+  );
+}
+
+function DiffPreview({ text }: { text: string }) {
+  const lines = text.split("\n");
+  return (
+    <div className="diff-preview">
+      {lines.map((line, i) => {
+        const cls = line.startsWith("+") && !line.startsWith("+++")
+          ? "diff-add"
+          : line.startsWith("-") && !line.startsWith("---")
+          ? "diff-del"
+          : line.startsWith("@@")
+          ? "diff-hunk"
+          : line.startsWith("---") || line.startsWith("+++")
+          ? "diff-header"
+          : "diff-ctx";
+        return <div key={i} className={`diff-line ${cls}`}>{line || " "}</div>;
+      })}
+    </div>
   );
 }

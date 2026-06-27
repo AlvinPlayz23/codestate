@@ -12,6 +12,8 @@ export function createAgent(options: AgentOptions) {
   const abortControllers = new Map<string, AbortController>();
 
   async function run(sessionId: string, userMessage: string, yolo = false, displayMessage = userMessage) {
+    abortControllers.get(sessionId)?.abort();
+    approvals.cancelForSession(sessionId);
     const controller = new AbortController();
     abortControllers.set(sessionId, controller);
 

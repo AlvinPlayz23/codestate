@@ -73,10 +73,15 @@ export function createTools(context: ToolContext) {
     },
 
     apply: async ({ path: requestedPath, find, replace }: { path: string; find: string; replace: string }) => {
+      if (!find) throw new Error("find must not be empty");
+      if (find === replace) throw new Error("find and replace are identical — no edit needed");
       const file = resolveInsideRoot(context.projectRoot, requestedPath);
       const content = await readFile(file.absolute, "utf8");
-      if (!content.includes(find)) throw new Error(`Could not find target text in ${file.relative}`);
-      const next = content.replace(find, replace);
+      const first = content.indexOf(find);
+      if (first === -1) throw new Error(`Could not find target text in ${file.relative}`);
+      if (content.indexOf(find, first + 1) !== -1)
+        throw new Error(`Found multiple occurrences of target text in ${file.relative} — make find more specific`);
+      const next = content.slice(0, first) + replace + content.slice(first + find.length);
       await writeFile(file.absolute, next, "utf8");
       return { path: file.relative, output: `Applied edit to ${file.relative}` };
     },
