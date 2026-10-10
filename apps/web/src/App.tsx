@@ -3,23 +3,30 @@ import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { ApprovalRequest, ChatMessage, SessionSummary, ServerEvent, TimelineItem, ToolCall, ToolResult } from "@codestate/shared";
 import {
+  ArrowUp,
+  AtSign,
+  Bot,
   Check,
-  ChevronDown,
-  Command,
   ChevronRight,
+  Circle,
+  Code,
   FileText,
   Folder,
-  Menu,
+  History,
+  MessageSquarePlus,
   Moon,
-  Plus,
+  PanelLeftClose,
+  PanelLeftOpen,
   Search,
-  Send,
   Settings,
+  Sparkles,
   Square,
   Sun,
+  Terminal,
   Trash2,
   X
 } from "lucide-react";
+import { cn } from "./lib/utils";
 
 type ProjectState = {
   projectRoot: string;
@@ -30,6 +37,8 @@ type FileSuggestion = {
   path: string;
   name: string;
 };
+
+type ToolItem = { call: ToolCall; result?: ToolResult };
 
 type ActiveFileMention = {
   start: number;
@@ -353,33 +362,46 @@ export function App() {
     <div className="codestate-ui" data-theme={theme} data-mode={mode}>
       {sidebarOpen ? (
         <aside className="sidebar">
-          <button type="button" className="icon-button sidebar-toggle" onClick={() => setSidebarOpen(false)} aria-label="Close sidebar"><Menu size={16} /></button>
-          <button type="button" className="nav-row" onClick={() => void newChat()}><Plus size={15} /> New Chat</button>
-          <button type="button" className="nav-row" onClick={() => setPaletteOpen(true)}><Search size={15} /> Search <kbd>⌘K</kbd></button>
+          <div className="sidebar-head">
+            <div className="sidebar-brand">
+              <span className="brand-glyph" />
+              <span className="brand-label">codestate</span>
+            </div>
+            <button type="button" className="icon-button" onClick={() => setSidebarOpen(false)} aria-label="Close sidebar">
+              <PanelLeftClose size={16} />
+            </button>
+          </div>
 
-          <div className="sessions">
-            <span className="section-label">Sessions</span>
-            <div className="project-row">
-              <ChevronDown size={14} />
-              <span className="project-title">{projectName}</span>
-              <span className="project-count">{sessions.length}</span>
+          <div className="sidebar-actions">
+            <button type="button" className="action-chip primary" onClick={() => void newChat()}>
+              <MessageSquarePlus size={15} /> New Conversation
+            </button>
+            <button type="button" className="action-chip" onClick={() => setPaletteOpen(true)}>
+              <Search size={14} /> Search <kbd>⌘K</kbd>
+            </button>
+          </div>
+
+          <div className="sessions-area">
+            <div className="sessions-head">
+              <span className="section-label">Sessions</span>
+              <span className="count-badge">{sessions.length}</span>
             </div>
             <div className="thread-list">
               {sessions.map((session) => (
                 <button
                   key={session.id}
-                  className={`thread-row ${session.id === sessionId ? "active" : ""}`}
+                  className={cn("thread-row", session.id === sessionId && "active")}
                   onClick={() => void loadSession(session.id)}
                 >
-                  <FileText size={13} />
-                  <span>{session.title}</span>
+                  <Circle size={7} fill="currentColor" />
+                  <span className="thread-title">{session.title}</span>
                   <button
                     type="button"
                     className="thread-delete"
                     onClick={(e) => void deleteSession(session.id, e)}
                     aria-label="Delete session"
                   >
-                    <Trash2 size={12} />
+                    <Trash2 size={11} />
                   </button>
                 </button>
               ))}
@@ -387,33 +409,82 @@ export function App() {
             </div>
           </div>
 
-          <div className="status-stack">
-            <span className={`status-dot ${busy ? "busy" : ""}`} />
-            <span>{pendingApproval ? "APPROVAL" : busy ? "ACTIVE" : "READY"}</span>
+          <div className="sidebar-foot">
+            <button type="button" className="action-chip settings-trigger" onClick={() => setSettingsOpen(true)}>
+              <Settings size={14} /> Settings
+            </button>
+            <div className={cn("status-chip", busy && "busy", pendingApproval && "pending")}>
+              <span className="status-pip" />
+              <span>{pendingApproval ? "AWAITING" : busy ? "ACTIVE" : "READY"}</span>
+            </div>
           </div>
-          <button type="button" className="nav-row settings-button" onClick={() => setSettingsOpen(true)}><Settings size={15} /> Settings</button>
         </aside>
       ) : (
-        <button type="button" className="floating-menu" onClick={() => setSidebarOpen(true)} aria-label="Open sidebar"><Menu size={16} /></button>
+        <button type="button" className="sidebar-peek" onClick={() => setSidebarOpen(true)} aria-label="Open sidebar">
+          <PanelLeftOpen size={18} />
+        </button>
       )}
 
-      <div className={`main-panel ${sidebarOpen ? "with-sidebar" : ""} ${hasConversation ? "chatting" : "idle"}`}>
+      <div className={cn("main-panel", sidebarOpen && "with-sidebar", hasConversation ? "chatting" : "idle")}>
         <div className="rail left" />
         <div className="rail right" />
 
+        <header className="top-bar">
+          <div className="top-brand">
+            <span className="brand-glyph" />
+            <span className="brand-label">codestate</span>
+          </div>
+          <div className="top-project" title={project?.projectRoot}>
+            <Folder size={13} />
+            <span>{projectName}</span>
+          </div>
+          <div className="top-spacer" />
+          <div className="top-actions">
+            <button type="button" className="top-action" onClick={() => setPaletteOpen(true)} aria-label="Search sessions" title="Search sessions (⌘K)">
+              <Search size={16} />
+            </button>
+            <button type="button" className="top-action" onClick={() => setSettingsOpen(true)} aria-label="Settings" title="Settings">
+              <Settings size={16} />
+            </button>
+          </div>
+        </header>
+
         <main className="chat-canvas">
-          <div className="folder-pill"><Folder size={14} /> {projectName}</div>
-          {!hasConversation && <h1>What would you like to build today?</h1>}
+          {!hasConversation && (
+            <div className="welcome-area">
+              <div className="folder-badge"><Folder size={13} /> {projectName}</div>
+              <h1>What are you building?</h1>
+              <div className="suggestion-chips">
+                {["Explain this codebase", "Add a dark mode", "Write tests for"].map((text) => (
+                  <button key={text} type="button" className="suggestion-chip" onClick={() => setDraft(text + " ")}>
+                    {text}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           <section className="timeline" aria-live="polite" ref={timelineRef}>
-            {items.map((item, index) => {
-              if (item.type === "message") return <MessageBubble key={item.message.id} message={item.message} />;
-              if (item.type === "tool") return <ToolCard key={`${item.call.id}-${index}`} call={item.call} result={item.result} />;
-              if (item.resolved !== undefined) return null;
-              return <ApprovalCard key={item.request.id} item={item} onRespond={respondToApproval} />;
-            })}
-            {streamingText && <MessageBubble message={{ id: "stream", role: "assistant", content: streamingText, createdAt: Date.now() }} />}
-            <div className="timeline-end" ref={timelineEndRef} />
+            {(() => {
+              const nodes: React.ReactNode[] = [];
+              let pending: ToolItem[] = [];
+              for (const item of items) {
+                if (item.type === "tool") {
+                  pending.push({ call: item.call, result: item.result });
+                } else if (item.type === "message") {
+                  nodes.push(<MessageBubble key={item.message.id} message={item.message} tools={pending} />);
+                  pending = [];
+                } else if (item.resolved === undefined) {
+                  nodes.push(<ApprovalCard key={item.request.id} item={item} onRespond={respondToApproval} />);
+                  pending = [];
+                }
+              }
+              if (streamingText) {
+                nodes.push(<MessageBubble key="stream" message={{ id: "stream", role: "assistant", content: streamingText, createdAt: Date.now() }} tools={pending} />);
+              }
+              nodes.push(<div key="end" className="timeline-end" ref={timelineEndRef} />);
+              return nodes;
+            })()}
           </section>
 
           {busy && <BloomGlow label={pendingApproval ? "waiting for approval" : "agent running"} />}
@@ -426,89 +497,112 @@ export function App() {
                   <button
                     key={file.path}
                     type="button"
-                    className={index === mentionIndex ? "active" : ""}
+                    className={cn("mention-row", index === mentionIndex && "active")}
                     onMouseDown={(event) => {
                       event.preventDefault();
                       selectFileMention(file);
                     }}
                   >
-                    <FileText size={13} />
+                    <FileText size={12} />
                     <span>{file.path}</span>
                   </button>
                 ))}
               </div>
             )}
-            <textarea
-              ref={textareaRef}
-              value={draft}
-              onChange={(event) => handleDraftChange(event.target.value, event.target.selectionStart)}
-              onClick={(event) => updateActiveFileMention(draft, event.currentTarget.selectionStart)}
-              onKeyUp={(event) => {
-                if (["ArrowDown", "ArrowUp", "Tab", "Enter", "Escape"].includes(event.key)) return;
-                updateActiveFileMention(draft, event.currentTarget.selectionStart);
-              }}
-              placeholder={busy ? "Agent is working... press Stop to cancel" : "Describe a feature, a bug, or @file..."}
-              onKeyDown={(event) => {
-                if (activeMention && fileSuggestions.length > 0) {
-                  if (event.key === "ArrowDown") {
-                    event.preventDefault();
-                    setMentionIndex((index) => (index + 1) % fileSuggestions.length);
-                    return;
+            <div className="prompt-body">
+              <textarea
+                ref={textareaRef}
+                value={draft}
+                onChange={(event) => handleDraftChange(event.target.value, event.target.selectionStart)}
+                onClick={(event) => updateActiveFileMention(draft, event.currentTarget.selectionStart)}
+                onKeyUp={(event) => {
+                  if (["ArrowDown", "ArrowUp", "Tab", "Enter", "Escape"].includes(event.key)) return;
+                  updateActiveFileMention(draft, event.currentTarget.selectionStart);
+                }}
+                placeholder={busy ? "Agent is working... press Stop to cancel" : "Describe a feature, a bug, or @file..."}
+                onKeyDown={(event) => {
+                  if (activeMention && fileSuggestions.length > 0) {
+                    if (event.key === "ArrowDown") {
+                      event.preventDefault();
+                      setMentionIndex((index) => (index + 1) % fileSuggestions.length);
+                      return;
+                    }
+                    if (event.key === "ArrowUp") {
+                      event.preventDefault();
+                      setMentionIndex((index) => (index - 1 + fileSuggestions.length) % fileSuggestions.length);
+                      return;
+                    }
+                    if (event.key === "Tab" || event.key === "Enter") {
+                      event.preventDefault();
+                      selectFileMention(fileSuggestions[mentionIndex]);
+                      return;
+                    }
+                    if (event.key === "Escape") {
+                      event.preventDefault();
+                      setActiveMention(null);
+                      setFileSuggestions([]);
+                      return;
+                    }
                   }
-                  if (event.key === "ArrowUp") {
+                  if (event.key === "Enter" && !event.shiftKey) {
                     event.preventDefault();
-                    setMentionIndex((index) => (index - 1 + fileSuggestions.length) % fileSuggestions.length);
-                    return;
+                    void sendMessage(event);
                   }
-                  if (event.key === "Tab" || event.key === "Enter") {
-                    event.preventDefault();
-                    selectFileMention(fileSuggestions[mentionIndex]);
-                    return;
-                  }
-                  if (event.key === "Escape") {
-                    event.preventDefault();
-                    setActiveMention(null);
-                    setFileSuggestions([]);
-                    return;
-                  }
-                }
-                if (event.key === "Enter" && !event.shiftKey) {
-                  event.preventDefault();
-                  void sendMessage(event);
-                }
-              }}
-            />
-            <div className="composer-footer">
-              <span>{project?.model ?? "cloud model"}</span>
-              <div className="composer-right">
-                <button type="button" className={`ay-toggle ${yolo ? "yolo" : ""}`} onClick={() => setYolo((v) => !v)} title={yolo ? "Yolo mode — no approvals" : "Approval mode"}>
-                  <span className="ay-knob">A</span>
-                  <span className="ay-knob">Y</span>
-                </button>
-                <button type="submit" className={busy ? "stop-btn" : "send-btn"} disabled={!busy && !draft.trim()} aria-label={busy ? "Stop" : "Send message"}>
-                  {busy ? <Square size={14} fill="currentColor" /> : <Send size={16} />}
-                </button>
+                }}
+              />
+              <div className="prompt-tray">
+                <div className="prompt-tray-left">
+                  <span className="model-chip">{project?.model ?? "cloud"}</span>
+                </div>
+                <div className="prompt-tray-right">
+                  <button type="button" className={cn("ay-toggle", yolo && "yolo")} onClick={() => setYolo((v) => !v)} title={yolo ? "Yolo mode — no approvals" : "Approval mode"}>
+                    <span className="ay-knob">A</span>
+                    <span className="ay-knob">Y</span>
+                  </button>
+                  <button
+                    type="submit"
+                    className={cn("action-chip send-chip", busy ? "stop" : "send")}
+                    disabled={!busy && !draft.trim()}
+                    aria-label={busy ? "Stop" : "Send message"}
+                  >
+                    {busy ? <Square size={14} fill="currentColor" /> : <ArrowUp size={16} />}
+                  </button>
+                </div>
               </div>
             </div>
           </form>
         </main>
 
-        <footer>codestate labs <span>© {new Date().getFullYear()}</span></footer>
+        <footer><span className="footer-marca">codestate</span><span className="footer-year">© {new Date().getFullYear()}</span></footer>
       </div>
 
       {settingsOpen && (
         <div className="modal-backdrop" onClick={() => setSettingsOpen(false)}>
           <section className="settings-modal" onClick={(event) => event.stopPropagation()}>
-            <header><strong>Settings</strong><button type="button" onClick={() => setSettingsOpen(false)}><X size={15} /></button></header>
-            <div className="settings-row project-path"><span>Project</span><strong>{project?.projectRoot ?? "Local project"}</strong></div>
-            <div className="settings-row"><span>Atmosphere</span><button type="button" className="mode-toggle" onClick={() => setMode(mode === "dark" ? "light" : "dark")}>{mode === "dark" ? <Moon size={16} /> : <Sun size={16} />}</button></div>
-            <span className="section-label">Visual Profile</span>
-            <div className="theme-grid">
-              {themes.map((item) => (
-                <button key={item.name} type="button" className={`theme-swatch ${item.name} ${theme === item.name ? "selected" : ""}`} onClick={() => setTheme(item.name)} title={item.label}>
-                  <span>{item.label}</span>{theme === item.name && <Check size={14} />}
+            <div className="settings-head">
+              <strong>Settings</strong>
+              <button type="button" className="icon-button" onClick={() => setSettingsOpen(false)}><X size={16} /></button>
+            </div>
+            <div className="settings-body">
+              <div className="settings-tile">
+                <span className="tile-label">Project</span>
+                <span className="tile-value">{project?.projectRoot ?? "Local project"}</span>
+              </div>
+              <div className="settings-tile">
+                <span className="tile-label">Atmosphere</span>
+                <button type="button" className="mode-chip" onClick={() => setMode(mode === "dark" ? "light" : "dark")}>
+                  {mode === "dark" ? <Moon size={15} /> : <Sun size={15} />}
+                  <span>{mode === "dark" ? "Dark" : "Light"}</span>
                 </button>
-              ))}
+              </div>
+              <span className="section-label">Visual Profile</span>
+              <div className="theme-grid">
+                {themes.map((item) => (
+                  <button key={item.name} type="button" className={cn("theme-tile", item.name, theme === item.name && "selected")} onClick={() => setTheme(item.name)} title={item.label}>
+                    <span>{item.label}</span>{theme === item.name && <Check size={13} />}
+                  </button>
+                ))}
+              </div>
             </div>
           </section>
         </div>
@@ -517,14 +611,14 @@ export function App() {
       {paletteOpen && (
         <div className="cmd-overlay" onClick={() => setPaletteOpen(false)}>
           <section className="cmd-palette" onClick={(event) => event.stopPropagation()}>
-            <div className="cmd-input-wrap"><Search size={16} /><input autoFocus value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search sessions, prompts..." /><kbd>ESC</kbd></div>
+            <div className="cmd-input-area"><Search size={15} /><input autoFocus value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search sessions..." /><kbd>ESC</kbd></div>
             <div className="cmd-results">
-              <span className="section-label">{search ? "Results" : "Sessions"}</span>
+              <span className="section-label">{search ? "Results" : "Recent Sessions"}</span>
               {sessions
                 .filter((s) => !search || s.title.toLowerCase().includes(search.toLowerCase()))
                 .map((session) => (
-                  <button key={session.id} type="button" onClick={() => { void loadSession(session.id); setPaletteOpen(false); }}>
-                    <Command size={14} /> <span>{session.title}</span><small>{projectName}</small>
+                  <button key={session.id} type="button" className="cmd-result-row" onClick={() => { void loadSession(session.id); setPaletteOpen(false); }}>
+                    <History size={13} /> <span>{session.title}</span><small>{projectName}</small>
                   </button>
                 ))}
             </div>
@@ -550,15 +644,28 @@ function getFileMentionPaths(message: string): string[] {
   return Array.from(new Set(Array.from(matches, (match) => match[1].replace(/[.,;:!?\])}]+$/, "")).filter(Boolean)));
 }
 
-function MessageBubble({ message }: { message: ChatMessage }) {
-  if (message.role === "assistant") {
-    return (
-      <article className={`message ${message.role}`}>
-        <Markdown remarkPlugins={[remarkGfm]}>{message.content}</Markdown>
-      </article>
-    );
-  }
-  return <article className={`message ${message.role}`}>{message.content}</article>;
+function MessageBubble({ message, tools }: { message: ChatMessage; tools?: ToolItem[] }) {
+  return (
+    <article className={cn("message-bubble", message.role)}>
+      {message.role === "assistant" && (
+        <div className="bubble-avatar"><Bot size={13} /></div>
+      )}
+      <div className="bubble-content">
+        {message.role === "assistant" ? (
+          <Markdown remarkPlugins={[remarkGfm]}>{message.content}</Markdown>
+        ) : (
+          <p>{message.content}</p>
+        )}
+        {tools && tools.length > 0 && (
+          <div className="bubble-tools">
+            {tools.map((t, i) => (
+              <ToolCard key={t.call.id ?? i} call={t.call} result={t.result} />
+            ))}
+          </div>
+        )}
+      </div>
+    </article>
+  );
 }
 
 function BloomGlow({ label }: { label: string }) {
@@ -572,7 +679,7 @@ function BloomGlow({ label }: { label: string }) {
 
 function DotmSquare8({ size, dotSize, speed, bloom }: { size: number; dotSize: number; speed: number; bloom?: boolean }) {
   return (
-    <div className={`dotm-square-8 ${bloom ? "bloom" : ""}`} style={{ width: size, height: size, "--dot-size": `${dotSize}px`, "--speed": `${speed}s` } as CSSProperties}>
+    <div className={cn("dotm-square-8", bloom && "bloom")} style={{ width: size, height: size, "--dot-size": `${dotSize}px`, "--speed": `${speed}s` } as CSSProperties}>
       {Array.from({ length: 64 }).map((_, index) => {
         const row = Math.floor(index / 8);
         const column = index % 8;
@@ -587,16 +694,30 @@ function ToolCard({ call, result }: { call: ToolCall; result?: ToolResult }) {
   const label = formatToolLabel(call, result);
   const output = result?.output?.trim();
   const canOpen = Boolean(output);
+  const icon = toolIcon(call.name);
 
   return (
-    <article className="tool-row">
-      <button type="button" className="tool-label" onClick={() => canOpen && setOpen((current) => !current)} disabled={!canOpen} aria-expanded={canOpen ? open : undefined}>
-        <ChevronRight className={`tool-chevron ${open ? "open" : ""}`} size={14} />
-        <span className={result ? "tool-done-label" : "tool-shimmer-text"}>{label}</span>
+    <div className="tool-chip">
+      <button type="button" className="tool-chip-btn" onClick={() => canOpen && setOpen((current) => !current)} disabled={!canOpen} aria-expanded={canOpen ? open : undefined}>
+        {icon}
+        <span className={result ? "tool-chip-done" : "tool-chip-pending"}>{label}</span>
+        {canOpen && <ChevronRight size={12} className={cn("tool-chevron", open && "open")} />}
       </button>
       {open && output && <pre className={result?.ok ? "tool-output" : "tool-output error"}>{output}</pre>}
-    </article>
+    </div>
   );
+}
+
+function toolIcon(name: string) {
+  switch (name) {
+    case "read": return <FileText size={12} />;
+    case "list": return <Folder size={12} />;
+    case "search": return <Search size={12} />;
+    case "run": return <Terminal size={12} />;
+    case "write": return <Code size={12} />;
+    case "apply": return <Sparkles size={12} />;
+    default: return <FileText size={12} />;
+  }
 }
 
 function formatToolLabel(call: ToolCall, result?: ToolResult) {
@@ -617,31 +738,31 @@ function ApprovalCard({ item, onRespond }: { item: Extract<TimelineItem, { type:
   const toolName = item.request.toolCall.name;
   const isDiff = toolName === "apply" && item.request.preview.startsWith("---");
   return (
-    <article className="approval-card">
-      <div className="approval-header">
+    <div className="approval-card">
+      <div className="approval-head">
         <span className="approval-tool-badge">{toolName}</span>
-        <span className="approval-eyebrow">needs your approval</span>
+        <span className="approval-caption">requests approval</span>
       </div>
       {isDiff ? (
         <DiffPreview text={item.request.preview} />
       ) : (
-        <pre className="approval-preview">{item.request.preview}</pre>
+        <pre className="approval-pre">{item.request.preview}</pre>
       )}
       {item.resolved === undefined ? (
         <div className="approval-actions">
-          <button type="button" className="approval-btn approve" onClick={() => onRespond(item.request.id, true)}>
+          <button type="button" className="approval-action allow" onClick={() => onRespond(item.request.id, true)}>
             <Check size={13} /> Approve
           </button>
-          <button type="button" className="approval-btn reject" onClick={() => onRespond(item.request.id, false)}>
+          <button type="button" className="approval-action deny" onClick={() => onRespond(item.request.id, false)}>
             <X size={13} /> Reject
           </button>
         </div>
       ) : (
-        <div className={`approval-resolved ${item.resolved ? "approved" : "rejected"}`}>
+        <div className={cn("approval-verdict", item.resolved ? "allowed" : "denied")}>
           {item.resolved ? <><Check size={12} /> Approved</> : <><X size={12} /> Rejected</>}
         </div>
       )}
-    </article>
+    </div>
   );
 }
 
@@ -659,7 +780,7 @@ function DiffPreview({ text }: { text: string }) {
           : line.startsWith("---") || line.startsWith("+++")
           ? "diff-header"
           : "diff-ctx";
-        return <div key={i} className={`diff-line ${cls}`}>{line || " "}</div>;
+        return <div key={i} className={cn("diff-line", cls)}>{line || " "}</div>;
       })}
     </div>
   );

@@ -60,6 +60,7 @@ export type ServerEvent =
   | { type: "message.delta"; sessionId: string; content: string }
   | { type: "message.done"; sessionId: string; message: ChatMessage }
   | { type: "tool.started"; sessionId: string; toolCall: ToolCall }
+  | { type: "tool.running"; sessionId: string; step: number; maxSteps: number }
   | { type: "tool.output"; sessionId: string; result: ToolResult }
   | { type: "approval.requested"; sessionId: string; request: ApprovalRequest }
   | { type: "approval.resolved"; sessionId: string; approvalId: string; approved: boolean }

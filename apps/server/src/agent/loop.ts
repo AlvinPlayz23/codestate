@@ -46,6 +46,20 @@ export async function runTurn(
   const history = buildHistory(session.modelHistory);
   const persist = () => store.saveModelHistory(sessionId, history);
 
+  // Track completed tool runs — used for progress events and for recording the
+  // final total when the turn ends early (abort or step cap).
+  let completedTools = 0;
+
+  // Record how many tool steps actually completed — lets the UI report the
+  // true total if the turn stopped early (user abort or step cap).
+  const recordFinalStep = async (finalStep: number) => {
+    history.push({
+      role: "system",
+      content: `Agent completed ${finalStep} of ${MAX_TOOL_STEPS} tool steps.`
+    });
+    await persist();
+  };
+
   // Repair any dangling tool calls, persist, and tell the UI why we stopped.
   const stop = async (message: string) => {
     backfillPendingToolResults(history);
@@ -92,16 +106,28 @@ export async function runTurn(
         };
         await store.appendTimeline(sessionId, { type: "message", message });
         await persist();
+        recordFinalStep(completedTools);
         events.emit({ type: "message.done", sessionId, message });
         return;
       }
 
       for (const toolCall of response.toolCalls) {
-        if (signal.aborted) return stop("Agent stopped by user.");
+        if (signal.aborted) {
+          recordFinalStep(completedTools);
+          return stop("Agent stopped by user.");
+        }
 
         const toolItem: TimelineItem = { type: "tool", call: toolCall };
         await store.appendTimeline(sessionId, toolItem);
         events.emit({ type: "tool.started", sessionId, toolCall });
+
+        // Progress update so the UI can show step-by-step progress.
+        events.emit({
+          type: "tool.running",
+          sessionId,
+          step: completedTools + 1,
+          maxSteps: MAX_TOOL_STEPS
+        });
 
         const result = await executeTool({ tools, approvals }, sessionId, toolCall, yolo);
         await store.updateTimelineItem(
@@ -110,15 +136,18 @@ export async function runTurn(
           (item) => (item.type === "tool" ? { ...item, result } : item)
         );
         events.emit({ type: "tool.output", sessionId, result });
+        completedTools += 1;
 
         history.push({ role: "tool", tool_call_id: toolCall.id, content: result.output });
         await persist();
       }
     }
 
+    recordFinalStep(completedTools);
     await stop("Agent stopped after too many tool steps. Try a narrower prompt.");
   } catch (error) {
     if (signal.aborted) {
+      recordFinalStep(completedTools);
       await stop("Agent stopped by user.");
       return;
     }
